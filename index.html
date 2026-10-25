@@ -1,300 +1,300 @@
 <!DOCTYPE html>
-<html lang="en" data-ui-theme="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Physix Smart Board — Pro Teaching Studio for XP-Pen & Windows 11</title>
+  <title>Physix Smart Board — Pro Teaching Studio</title>
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- PDF.js, jsPDF, JSZip -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
   <style>
-    :root[data-ui-theme="dark"] {
-      --ui-bg: #0b0e14;
-      --ui-panel: #131822;
-      --ui-card: #1c2331;
-      --ui-border: #2a3449;
-      --ui-text: #f1f5f9;
-      --ui-muted: #94a3b8;
-      --ui-accent: #3b82f6;
-      --ui-accent-glow: rgba(59, 130, 246, 0.35);
-      --ui-danger: #ef4444;
-      --ui-success: #22c55e;
-    }
-    :root[data-ui-theme="light"] {
-      --ui-bg: #e2e8f0;
-      --ui-panel: #ffffff;
-      --ui-card: #f1f5f9;
-      --ui-border: #cbd5e1;
-      --ui-text: #0f172a;
-      --ui-muted: #475569;
-      --ui-accent: #2563eb;
-      --ui-accent-glow: rgba(37, 99, 235, 0.25);
-      --ui-danger: #dc2626;
-      --ui-success: #16a34a;
+    :root {
+      --bg-dark: #090d16;
+      --panel-bg: #111622;
+      --panel-alt: #171e2e;
+      --border: #263044;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #2563eb;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
-    body {
-      font-family: 'Inter', system-ui, sans-serif;
-      background: var(--ui-bg);
-      color: var(--ui-text);
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
       width: 100vw;
       height: 100vh;
       overflow: hidden;
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Inter', sans-serif;
       display: flex;
       flex-direction: column;
-      touch-action: none;
     }
 
-    .top-toolbar {
-      height: 50px;
-      background: var(--ui-panel);
-      border-bottom: 1px solid var(--ui-border);
-      padding: 0 10px;
+    /* TOP TOOLBAR - COMPACT TO MAXIMIZE WRITING SPACE */
+    .top-bar {
+      background: var(--panel-bg);
+      border-bottom: 1px solid var(--border);
+      padding: 4px 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      height: 44px;
+      flex-shrink: 0;
+      z-index: 30;
+    }
+    .top-bar::-webkit-scrollbar { height: 3px; }
+    .top-bar::-webkit-scrollbar-thumb { background: var(--border); }
+
+    .sub-bar {
+      background: #0d121d;
+      border-bottom: 1px solid var(--border);
+      padding: 4px 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 6px;
-      z-index: 40;
+      gap: 10px;
+      height: 38px;
       flex-shrink: 0;
+      z-index: 29;
       overflow-x: auto;
     }
-    .tool-cluster {
+
+    .sub-group {
       display: flex;
       align-items: center;
-      gap: 5px;
+      gap: 6px;
+      flex-shrink: 0;
     }
+
+    .btn {
+      background: var(--panel-alt);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 5px 9px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: #222c42; border-color: #3b4b6b; }
+    .btn.active {
+      background: var(--accent);
+      border-color: #60a5fa;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.35);
+    }
+    .btn.danger { color: #fca5a5; border-color: #7f1d1d; background: rgba(127, 29, 29, 0.25); }
+    .btn.danger:hover { background: var(--danger); color: #fff; }
+    .btn.success { background: rgba(16, 185, 129, 0.2); border-color: #059669; color: #6ee7b7; }
+    .btn.success:hover { background: var(--success); color: #fff; }
+    .btn.present-btn { background: #7c3aed; border-color: #8b5cf6; color: #fff; font-weight: 600; }
+    .btn.present-btn:hover { background: #6d28d9; }
+
     .divider {
       width: 1px;
-      height: 24px;
-      background: var(--ui-border);
-      margin: 0 3px;
-    }
-
-    .t-btn {
-      background: var(--ui-card);
-      color: var(--ui-text);
-      border: 1px solid var(--ui-border);
-      border-radius: 7px;
-      padding: 6px 9px;
-      font-size: 0.75rem;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      transition: all 0.12s;
-      white-space: nowrap;
-    }
-    .t-btn:hover { border-color: var(--ui-accent); }
-    .t-btn.active {
-      background: var(--ui-accent);
-      color: #ffffff;
-      border-color: #60a5fa;
-      box-shadow: 0 0 0 2px var(--ui-accent-glow);
-    }
-    .t-btn.danger:hover { background: var(--ui-danger); color: #fff; border-color: var(--ui-danger); }
-
-    .bg-choice-btn.selected-choice,
-    .grid-choice-btn.selected-choice {
-      background: rgba(59, 130, 246, 0.22) !important;
-      border: 2px solid #38bdf8 !important;
-      color: #ffffff !important;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
-    }
-
-    .mode-pills {
-      display: flex;
-      background: var(--ui-bg);
-      padding: 3px;
-      border-radius: 8px;
-      border: 1px solid var(--ui-border);
-      gap: 3px;
-    }
-    .mode-pill {
-      background: transparent;
-      color: var(--ui-muted);
-      border: none;
-      padding: 4px 9px;
-      border-radius: 6px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .mode-pill.active { background: var(--ui-accent); color: #fff; }
-
-    .sub-toolbar {
-      min-height: 42px;
-      background: var(--ui-panel);
-      border-bottom: 1px solid var(--ui-border);
-      padding: 4px 12px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 10px;
-      flex-wrap: wrap;
-      z-index: 35;
+      height: 22px;
+      background: var(--border);
+      margin: 0 2px;
       flex-shrink: 0;
     }
-    .swatch {
+
+    .label-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* COLOR DOTS */
+    .color-dot {
       width: 22px;
       height: 22px;
       border-radius: 50%;
-      border: 2px solid var(--ui-border);
+      border: 2px solid transparent;
       cursor: pointer;
-      transition: transform 0.12s;
+      transition: transform 0.12s ease;
+      flex-shrink: 0;
     }
-    .swatch.active {
-      transform: scale(1.22);
-      border-color: var(--ui-accent);
-      box-shadow: 0 0 0 2px var(--ui-panel);
+    .color-dot:hover { transform: scale(1.15); }
+    .color-dot.active {
+      border-color: #ffffff;
+      box-shadow: 0 0 0 2px var(--accent);
+      transform: scale(1.1);
     }
-    .width-dot-btn {
-      width: 28px;
-      height: 28px;
-      border-radius: 6px;
-      background: var(--ui-card);
-      border: 1px solid var(--ui-border);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .width-dot-btn.active { border-color: var(--ui-accent); background: var(--ui-accent-glow); }
-    .dot-preview { background: var(--ui-text); border-radius: 50%; display: block; }
 
-    .main-body {
+    select.select-box, input.deck-title-input {
+      background: var(--panel-alt);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+    }
+    input.deck-title-input {
+      width: 155px;
+      font-weight: 600;
+      color: #93c5fd;
+    }
+    input.deck-title-input:focus { border-color: var(--accent); }
+
+    /* MAIN WORKSPACE */
+    .workspace {
       flex: 1;
       display: flex;
       overflow: hidden;
       position: relative;
+      background: #06090f;
     }
 
-    .slide-sidebar {
-      width: 220px;
-      background: var(--ui-panel);
-      border-right: 1px solid var(--ui-border);
+    /* SLIM COLLAPSIBLE SIDEBAR */
+    .sidebar {
+      width: 148px;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--border);
       display: flex;
       flex-direction: column;
-      transition: width 0.2s ease;
-      z-index: 30;
       flex-shrink: 0;
+      transition: margin-left 0.2s ease;
+      z-index: 20;
     }
-    .slide-sidebar.strip-mode { width: 92px; }
-    .slide-sidebar.hidden-mode { width: 0px; border-right: none; overflow: hidden; }
+    .sidebar.collapsed {
+      margin-left: -148px;
+    }
 
     .sidebar-header {
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--ui-border);
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.73rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      color: var(--ui-muted);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
     }
-    .sidebar-slide-actions {
-      padding: 6px 8px;
-      border-bottom: 1px solid var(--ui-border);
+
+    .sidebar-actions {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 5px;
+      gap: 4px;
+      padding: 6px;
+      border-bottom: 1px solid var(--border);
     }
-    .slide-sidebar.strip-mode .sidebar-slide-actions,
-    .slide-sidebar.strip-mode .sidebar-header span { display: none; }
+    .sidebar-actions .btn {
+      justify-content: center;
+      padding: 4px;
+      font-size: 11px;
+    }
 
-    .thumb-list {
+    .slides-list {
       flex: 1;
       overflow-y: auto;
-      padding: 10px 8px;
+      padding: 6px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 8px;
     }
-    .thumb-card {
-      background: var(--ui-card);
-      border: 2px solid var(--ui-border);
-      border-radius: 8px;
-      padding: 5px;
+    .slides-list::-webkit-scrollbar { width: 5px; }
+    .slides-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+    .slide-thumb-card {
+      background: var(--panel-alt);
+      border: 2px solid var(--border);
+      border-radius: 6px;
+      padding: 3px;
       cursor: pointer;
       position: relative;
-      transition: 0.15s;
+      transition: all 0.12s ease;
     }
-    .thumb-card:hover { border-color: var(--ui-muted); }
-    .thumb-card.active {
-      border-color: var(--ui-accent);
-      box-shadow: 0 0 0 2px var(--ui-accent-glow);
+    .slide-thumb-card.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 8px rgba(59, 130, 246, 0.35);
     }
-    .thumb-del-btn {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: rgba(239, 68, 68, 0.92);
-      color: #fff;
-      border: 1px solid #fca5a5;
-      font-size: 0.7rem;
-      font-weight: 800;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 5;
-      opacity: 0.85;
-      transition: 0.15s;
-    }
-    .thumb-del-btn:hover { opacity: 1; transform: scale(1.12); background: #dc2626; }
-
-    .thumb-preview {
+    .slide-thumb-card img {
       width: 100%;
       aspect-ratio: 16 / 9;
-      background: #1e293b;
-      border-radius: 4px;
-      overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
+      object-fit: contain;
+      background: #0d3b26;
+      border-radius: 3px;
+      display: block;
     }
-    .thumb-preview img { width: 100%; height: 100%; object-fit: contain; }
-    .thumb-meta {
+    .slide-thumb-meta {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-top: 4px;
-      font-size: 0.7rem;
+      font-size: 10px;
+      color: var(--text-muted);
+      padding: 2px 3px 0;
       font-family: 'JetBrains Mono', monospace;
-      color: var(--ui-muted);
+    }
+    .slide-del-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(239, 68, 68, 0.9);
+      color: #fff;
+      border: none;
+      font-size: 11px;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+    }
+    .slide-del-btn:hover { transform: scale(1.12); background: #dc2626; }
+
+    /* CANVAS STAGE - MAXIMIZED FOR FULL WRITING AREA */
+    .stage-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: auto;
+      position: relative;
+      padding: 4px; /* Minimal padding so board fills maximum screen */
+      background: #05070c;
     }
 
     .board-viewport {
-      flex: 1;
-      background: var(--ui-bg);
       position: relative;
+      background: #0d3b26;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.75);
+      border: 1px solid #1e293b;
+      transform-origin: center center;
       overflow: hidden;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      touch-action: none;
     }
 
-    #board-stage {
-      width: 1920px;
-      height: 1080px;
-      position: relative;
-      transform-origin: center center;
-      box-shadow: 0 14px 45px rgba(0, 0, 0, 0.45);
-      border-radius: 4px;
-      overflow: hidden;
-      touch-action: none;
-    }
-    #board-stage canvas {
+    .board-viewport canvas {
       position: absolute;
       top: 0;
       left: 0;
@@ -302,654 +302,439 @@
       height: 100%;
       touch-action: none;
     }
-    #bgCanvas { z-index: 1; }
-    #inkCanvas { z-index: 2; }
-    #tempCanvas { z-index: 3; cursor: crosshair; }
 
-    .phys-widget {
-      position: absolute;
-      z-index: 15;
-      display: none;
-      background: rgba(254, 249, 195, 0.90);
-      border: 2px solid #ca8a04;
-      color: #1e293b;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.35);
-      cursor: move;
-      touch-action: none;
-    }
-    #rulerWidget {
-      width: 700px;
-      height: 75px;
-      top: 450px;
-      left: 600px;
-      border-radius: 6px;
-      display: none;
-      flex-direction: column;
-      justify-content: space-between;
-      padding: 4px 10px;
-    }
-    #protractorWidget {
-      width: 420px;
-      height: 215px;
-      top: 380px;
-      left: 720px;
-      border-radius: 215px 215px 8px 8px;
-      display: none;
-    }
-    .widget-handle {
-      position: absolute;
-      right: -14px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
-      background: var(--ui-accent);
-      color: #fff;
-      font-size: 0.75rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: grab;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    }
+    #bgCanvas { z-index: 1; pointer-events: none; }
+    #inkCanvas { z-index: 2; cursor: crosshair; }
+    #tempCanvas { z-index: 3; pointer-events: none; }
+    #laserCanvas { z-index: 4; pointer-events: none; }
 
-    #textOverlayBox {
-      position: absolute;
-      z-index: 20;
-      display: none;
-      background: rgba(15, 23, 42, 0.94);
-      border: 2px solid var(--ui-accent);
-      border-radius: 8px;
-      padding: 8px;
-      color: #fff;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-    }
-    #textOverlayInput {
-      background: transparent;
-      color: #fff;
-      border: 1px dashed var(--ui-border);
-      padding: 6px;
-      font-family: 'Inter', sans-serif;
-      font-size: 24px;
-      min-width: 260px;
-      min-height: 48px;
-      outline: none;
-    }
-    .math-symbol-bar {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-top: 6px;
-      max-width: 360px;
-    }
-    .sym-chip {
-      background: var(--ui-card);
-      color: #fff;
-      border: 1px solid var(--ui-border);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 0.75rem;
-      font-family: 'JetBrains Mono', monospace;
-      cursor: pointer;
-    }
-    .sym-chip:hover { background: var(--ui-accent); }
-
-    .bottom-nav {
-      height: 44px;
-      background: var(--ui-panel);
-      border-top: 1px solid var(--ui-border);
-      padding: 0 14px;
+    /* BOTTOM BAR - SLIM */
+    .bottom-bar {
+      height: 30px;
+      background: var(--panel-bg);
+      border-top: 1px solid var(--border);
+      padding: 0 12px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      z-index: 40;
-      font-size: 0.78rem;
+      font-size: 11px;
+      color: var(--text-muted);
       flex-shrink: 0;
+      z-index: 30;
     }
-    .mono-stat {
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 600;
-      color: var(--ui-muted);
+    .bottom-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .bottom-bar .btn {
+      padding: 2px 7px;
+      font-size: 11px;
     }
 
+    /* PRESENT MODE - 100% FULL SCREEN BOARD */
+    body.present-mode .top-bar,
+    body.present-mode .sub-bar,
+    body.present-mode .sidebar,
+    body.present-mode .bottom-bar {
+      display: none !important;
+    }
+    body.present-mode .stage-container {
+      padding: 0 !important;
+      background: #000;
+    }
+    body.present-mode .board-viewport {
+      border: none !important;
+      width: 100vw !important;
+      height: 100vh !important;
+    }
+
+    /* PRESENT MODE FLOATING DOCK (WITH PEN COLOR PICKER INSTEAD OF LASER) */
+    .present-dock {
+      position: fixed;
+      bottom: 14px;
+      right: 18px;
+      background: rgba(15, 23, 42, 0.92);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 12px;
+      padding: 6px 10px;
+      display: none;
+      align-items: center;
+      gap: 7px;
+      z-index: 100;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+    }
+    body.present-mode .present-dock {
+      display: flex;
+    }
+    .present-dock .color-dot {
+      width: 19px;
+      height: 19px;
+    }
+
+    /* MODALS */
     .modal-backdrop {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.72);
-      backdrop-filter: blur(6px);
+      background: rgba(3, 7, 18, 0.78);
+      backdrop-filter: blur(5px);
       display: none;
       align-items: center;
       justify-content: center;
-      z-index: 100;
-      padding: 20px;
+      z-index: 200;
     }
+    .modal-backdrop.open { display: flex; }
+
     .modal-card {
-      background: var(--ui-panel);
-      border: 1px solid var(--ui-border);
-      border-radius: 14px;
-      width: 100%;
-      max-width: 700px;
-      max-height: 86vh;
-      overflow-y: auto;
+      background: #111827;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      width: 92%;
+      max-width: 580px;
       padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
     }
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      border-bottom: 1px solid var(--ui-border);
-      padding-bottom: 10px;
+      margin-bottom: 14px;
     }
-    .shortcut-grid {
+    .modal-header h3 {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .modal-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      font-size: 0.8rem;
-    }
-    .sc-row {
-      background: var(--ui-card);
-      border: 1px solid var(--ui-border);
-      border-radius: 8px;
-      padding: 8px 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .sc-key {
-      background: var(--ui-bg);
-      border: 1px solid var(--ui-border);
-      padding: 3px 8px;
-      border-radius: 5px;
-      font-family: 'JetBrains Mono', monospace;
-      font-weight: 700;
-      color: var(--ui-accent);
-      cursor: pointer;
-    }
-
-    .deck-item {
-      background: var(--ui-card);
-      border: 1px solid var(--ui-border);
-      border-radius: 10px;
-      padding: 10px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
       gap: 10px;
+      margin-top: 12px;
     }
-    .deck-item.active-deck {
-      border-color: #38bdf8;
-      background: rgba(56, 189, 248, 0.12);
+    .modal-grid .btn {
+      padding: 10px 12px;
+      justify-content: flex-start;
+      font-size: 12.5px;
     }
-
-    #presFloatingPill {
-      position: fixed;
-      bottom: 16px;
-      right: 16px;
-      background: rgba(15, 23, 42, 0.88);
-      backdrop-filter: blur(10px);
-      border: 1px solid var(--ui-border);
-      border-radius: 99px;
-      padding: 6px 12px;
-      display: none;
+    .deck-list-box {
+      max-height: 240px;
+      overflow-y: auto;
+      margin-top: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+      background: #0b0f19;
+    }
+    .deck-item {
+      display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 8px;
-      z-index: 90;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.45);
+      padding: 8px 10px;
+      border-bottom: 1px solid #1e293b;
+      border-radius: 6px;
     }
-
-    body.mode-presentation .top-toolbar,
-    body.mode-presentation .sub-toolbar,
-    body.mode-presentation .bottom-nav,
-    body.mode-presentation .slide-sidebar { display: none !important; }
-    body.mode-presentation #presFloatingPill { display: flex !important; }
+    .deck-item:last-child { border-bottom: none; }
+    .deck-item:hover { background: #161f33; }
+    .status-msg {
+      margin-top: 12px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #34d399;
+      min-height: 18px;
+    }
   </style>
 </head>
-<body class="mode-teaching">
+<body>
 
-  <!-- Hidden File Inputs -->
-  <input type="file" id="fileImportInput" accept=".pdf,.pptx,.ppt,.png,.jpg,.jpeg,.webp,.json" multiple style="display:none" />
-  <input type="file" id="imgObjectInput" accept=".png,.jpg,.jpeg,.webp" style="display:none" />
+  <!-- TOP BAR (ROW 1) -->
+  <div class="top-bar">
+    <button class="btn" id="toggleSidebarBtn" title="Toggle Slides Panel (Tab)">☰ Slides</button>
+    <button class="btn" id="openDecksModalBtn">📚 My Decks (<span id="deckCountBadge">0</span>)</button>
+    <input type="text" id="activeDeckNameInput" class="deck-title-input" value="Untitled Lesson" title="Current Lesson / File Name" />
+    <button class="btn" id="newFreshDeckBtn" title="Start a brand new clean lesson deck">✨ New Deck</button>
 
-  <!-- TOP COMPACT TOOLBAR -->
-  <header class="top-toolbar" id="topToolbar">
-    <div class="tool-cluster">
-      <button class="t-btn" onclick="cycleSidebarMode()" title="Collapse / Strip / Expand Slide Sidebar (Tab)">
-        ☰ Slides
-      </button>
-      <button class="t-btn" onclick="openDecksModal()" title="Manage & Switch Between Multiple Uploaded PDFs/PPTs/Lessons">
-        📚 My Decks (<span id="lblDeckCount">1</span>)
-      </button>
-      <button class="t-btn" onclick="document.getElementById('fileImportInput').click()" title="Import High-Res PDF, PPTX, or Images">
-        📂 Import File
-      </button>
-      <button class="t-btn" onclick="insertQuickBlankBoard()" title="Insert New Blank Board After Current Slide (B)">
-        ➕ Blank Board
-      </button>
-      <button class="t-btn" id="btnReturnSlide" style="display:none; border-color:#f59e0b; color:#fbbf24;" onclick="returnFromBlankBoard()">
-        ↩ Return
-      </button>
-      <div class="divider"></div>
-      <button class="t-btn" onclick="undoStroke()" title="Undo (Ctrl+Z)">↩ Undo</button>
-      <button class="t-btn" onclick="redoStroke()" title="Redo (Ctrl+Y)">↪ Redo</button>
-    </div>
+    <div class="divider"></div>
 
-    <!-- Core Annotation Tools -->
-    <div class="tool-cluster">
-      <button class="t-btn" id="tool-select" onclick="selectTool('select')" title="Select / Move Inserted Images (V)">🖱️ Select</button>
-      <button class="t-btn active" id="tool-pen" onclick="selectTool('pen')" title="Smooth Pressure Pen (P)">✒️ Pen</button>
-      <button class="t-btn" id="tool-highlighter" onclick="selectTool('highlighter')" title="Translucent Highlighter (H)">🖍️ Highlight</button>
-      <button class="t-btn" id="tool-eraser" onclick="selectTool('eraser')" title="Eraser Tool — Stays on Eraser until you switch tool (E)">🧹 Eraser</button>
-      <button class="t-btn" id="tool-laser" onclick="selectTool('laser')" title="Laser Pointer (L)">🔴 Laser</button>
-      <button class="t-btn" id="tool-line" onclick="selectTool('line')" title="Lines & Vectors (Ctrl+A = Arrow, Ctrl+L = Straight Line)">📏 Line/Vector</button>
-      <button class="t-btn" id="tool-shape" onclick="selectTool('shape')" title="Geometric & Physics Shapes">📐 Shapes</button>
-      <button class="t-btn" id="tool-text" onclick="selectTool('text')" title="Insert Text & Physics Equations (T)">🔤 Text/Eq</button>
-      <button class="t-btn" onclick="togglePhysicsToolkit()" id="btnPhysBar" title="Toggle Ruler, Protractor & Physics Instruments">🧲 Physics Kit</button>
-    </div>
+    <label class="btn" style="cursor:pointer;">
+      📂 Import PDF/PPTX/IMG
+      <input type="file" id="fileImportInput" accept=".pdf,.pptx,.png,.jpg,.jpeg,.webp,.physboard" multiple style="display:none;" />
+    </label>
+    <button class="btn" id="addBlankSlideTopBtn">➕ Blank Board</button>
 
-    <!-- Mode Switcher & Session/Export Actions -->
-    <div class="tool-cluster">
-      <div class="mode-pills">
-        <button class="mode-pill" id="mode-prep" onclick="setBoardMode('prep')">Prep</button>
-        <button class="mode-pill active" id="mode-teaching" onclick="setBoardMode('teaching')">Teach</button>
-        <button class="mode-pill" id="mode-pres" onclick="setBoardMode('presentation')">Present</button>
-      </div>
-      <button class="t-btn" onclick="openModal('bgModal')" title="Board Background & Grid Settings">🎨 Board BG</button>
-      <button class="t-btn" onclick="openModal('exportModal')" title="Save Session or Export Annotated PDF/PNG">💾 Save/Export</button>
-      <button class="t-btn" onclick="openModal('xpPenModal')" title="XP-Pen Tablet Shortcuts (Ctrl+A, Ctrl+L, etc.)">⚡ XP-Pen</button>
-      <button class="t-btn" onclick="toggleUiTheme()" title="Toggle Dark/Light Toolbar Theme">🌓</button>
-    </div>
-  </header>
+    <div class="divider"></div>
 
-  <!-- SECONDARY CONTEXT & PHYSICS SUB-TOOLBAR -->
-  <section class="sub-toolbar" id="subToolbar">
-    <div class="tool-cluster">
-      <span style="font-size:0.72rem; color:var(--ui-muted); font-weight:700; margin-right:4px;">INK:</span>
-      <div class="swatch active" style="background:#ffffff" onclick="setInkColor('#ffffff', this)" title="White"></div>
-      <div class="swatch" style="background:#0f172a" onclick="setInkColor('#0f172a', this)" title="Black"></div>
-      <div class="swatch" style="background:#ef4444" onclick="setInkColor('#ef4444', this)" title="Red"></div>
-      <div class="swatch" style="background:#38bdf8" onclick="setInkColor('#38bdf8', this)" title="Cyan Blue"></div>
-      <div class="swatch" style="background:#22c55e" onclick="setInkColor('#22c55e', this)" title="Green"></div>
-      <div class="swatch" style="background:#facc15" onclick="setInkColor('#facc15', this)" title="Yellow"></div>
-      <div class="swatch" style="background:#f97316" onclick="setInkColor('#f97316', this)" title="Orange"></div>
-      <input type="color" id="customColorPicker" value="#a855f7" onchange="setInkColor(this.value, null)" title="Custom Color" style="width:24px; height:24px; border:none; background:transparent; cursor:pointer;" />
+    <button class="btn" id="undoBtn" title="Undo (Ctrl+Z)">↩ Undo</button>
+    <button class="btn" id="redoBtn" title="Redo (Ctrl+Y)">↪ Redo</button>
+
+    <div class="divider"></div>
+
+    <button class="btn active" data-tool="pen" id="toolPenBtn" title="Smooth Pen (P)">✏️ Pen</button>
+    <button class="btn" data-tool="highlighter" id="toolHighBtn" title="Highlighter (H)">🖍️ Highlight</button>
+    <button class="btn" data-tool="eraser" id="toolEraserBtn" title="Permanent Eraser Toggle (E or Ctrl+E)">🧹 Eraser</button>
+    <button class="btn" data-tool="laser" id="toolLaserBtn" title="Laser Pointer Trail (L)">🔴 Laser</button>
+    <button class="btn" data-tool="line" id="toolLineBtn" title="Line / Vector Tool">📏 Line/Vector</button>
+    <button class="btn" data-tool="shape" id="toolShapeBtn" title="Geometric Shapes">📐 Shapes</button>
+    <button class="btn" data-tool="text" id="toolTextBtn" title="Insert Text / Equation (T)">🔤 Text/Eq</button>
+
+    <div class="divider"></div>
+
+    <button class="btn success" id="openSaveModalBtn">💾 Save / Export</button>
+    <button class="btn present-btn" id="enterPresentBtn" title="Full-Screen Present Mode (F11 / Esc)">🖥️ Present</button>
+  </div>
+
+  <!-- SUB BAR (ROW 2: INK, WIDTH, SHAPES, BOARD BG, CLEAR/DELETE) -->
+  <div class="sub-bar">
+    <div class="sub-group">
+      <span class="label-tag">INK:</span>
+      <div class="color-dot active" data-color="#ffffff" style="background:#ffffff;" title="White"></div>
+      <div class="color-dot" data-color="#facc15" style="background:#facc15;" title="Yellow"></div>
+      <div class="color-dot" data-color="#38bdf8" style="background:#38bdf8;" title="Cyan"></div>
+      <div class="color-dot" data-color="#4ade80" style="background:#4ade80;" title="Neon Green"></div>
+      <div class="color-dot" data-color="#fb7185" style="background:#fb7185;" title="Coral Red"></div>
+      <div class="color-dot" data-color="#fb923c" style="background:#fb923c;" title="Orange"></div>
+      <div class="color-dot" data-color="#c084fc" style="background:#c084fc;" title="Purple"></div>
+      <input type="color" id="customColorPicker" value="#ffffff" style="width:24px;height:22px;border:none;background:none;cursor:pointer;" title="Custom Color" />
 
       <div class="divider"></div>
-      <span style="font-size:0.72rem; color:var(--ui-muted); font-weight:700;">WIDTH:</span>
-      <button class="width-dot-btn" onclick="setPenWidth(2.5, this)" title="Thin"><span class="dot-preview" style="width:4px; height:4px;"></span></button>
-      <button class="width-dot-btn active" onclick="setPenWidth(4.5, this)" title="Medium"><span class="dot-preview" style="width:8px; height:8px;"></span></button>
-      <button class="width-dot-btn" onclick="setPenWidth(8.5, this)" title="Thick"><span class="dot-preview" style="width:13px; height:13px;"></span></button>
-      <input type="range" id="slPenWidth" min="1" max="28" step="0.5" value="4.5" oninput="setPenWidth(parseFloat(this.value), null)" style="width:75px; accent-color:var(--ui-accent);" />
+
+      <span class="label-tag">WIDTH:</span>
+      <input type="range" id="strokeWidthSlider" min="1" max="24" value="4" style="width:85px;cursor:pointer;" />
+      <span id="strokeWidthVal" class="label-tag" style="min-width:26px;">4px</span>
     </div>
 
-    <div class="tool-cluster" id="contextSubOptions">
-      <span style="font-size:0.72rem; color:var(--ui-muted); font-weight:700;">LINE/SHAPE:</span>
-      <select id="selLineStyle" class="t-btn" onchange="state.subShape = this.value; selectTool('line')">
-        <option value="solidLine">╱ Straight Line (Ctrl+L)</option>
-        <option value="arrow1" selected>➔ Vector / Single Arrow (Ctrl+A)</option>
-        <option value="arrow2">↔ Double Arrow</option>
-        <option value="dashedLine">┈ Dashed Construction Line</option>
-        <option value="dashedArrow">⇢ Dashed Ray Arrow</option>
+    <div class="sub-group">
+      <span class="label-tag">VECTOR/SHAPE:</span>
+      <select id="lineSubType" class="select-box" title="Line or Vector Shortcut">
+        <option value="arrow">➡ Single Arrow (Ctrl+A)</option>
+        <option value="line">╱ Straight Line (Ctrl+L)</option>
+        <option value="double-arrow">↔ Double Arrow</option>
+        <option value="dashed">┈ Dashed Line</option>
       </select>
-      <select id="selGeoShape" class="t-btn" onchange="state.subGeo = this.value; selectTool('shape')">
+
+      <select id="shapeSubType" class="select-box" title="Geometric Shape">
         <option value="rect">▭ Rectangle</option>
-        <option value="ellipse">◯ Circle / Ellipse</option>
+        <option value="circle">◯ Circle / Sphere</option>
         <option value="triangle">△ Right Triangle (Inclined Plane)</option>
-        <option value="axes2d">┼ 2D Coordinate Axes (X-Y)</option>
-        <option value="angleArc">∠ Angle Arc with Degree Label</option>
+        <option value="axes">┼ 2D Coordinate Axes</option>
       </select>
-      <div class="divider"></div>
-      <select id="selEraserMode" class="t-btn" onchange="state.eraserType = this.value; selectTool('eraser')">
+
+      <select id="eraserModeSelect" class="select-box" title="Eraser Behavior">
         <option value="stroke">🧹 Stroke Eraser (Whole Line)</option>
-        <option value="pixel">🧽 Area / Pixel Eraser</option>
+        <option value="pixel">🧽 Precision Pixel Eraser</option>
       </select>
-      <button class="t-btn danger" onclick="confirmClearSlide()" title="Erase all ink on this slide">🧹 Clear Ink</button>
-      <button class="t-btn danger" onclick="deleteSlideByIndex(state.currentSlideIdx)" title="Delete this entire slide from deck">🗑️ Delete Slide</button>
     </div>
 
-    <div class="tool-cluster" id="physicsKitCluster" style="display:none;">
-      <button class="t-btn" id="btnToggleRuler" onclick="toggleWidget('rulerWidget', this)">📏 Ruler</button>
-      <button class="t-btn" id="btnToggleProtractor" onclick="toggleWidget('protractorWidget', this)">📐 Protractor</button>
-      <button class="t-btn" onclick="document.getElementById('imgObjectInput').click()">🖼️ Insert Movable Image</button>
-      <label class="t-btn" style="cursor:pointer;">
-        <input type="checkbox" id="chkPalmReject" onchange="state.penOnly = this.checked" /> ✍️ Pen-Only (Palm Reject)
-      </label>
-    </div>
-  </section>
+    <div class="sub-group">
+      <span class="label-tag">BOARD:</span>
+      <select id="boardBgSelect" class="select-box" title="Default Board Background">
+        <option value="#0d3b26">Chalkboard Green</option>
+        <option value="#090d16">Deep Dark Blue</option>
+        <option value="#000000">Pure Pitch Black</option>
+        <option value="#ffffff">Classic Whiteboard</option>
+        <option value="#fef9c3">Warm Cream Paper</option>
+      </select>
 
-  <!-- MAIN WORKSPACE BODY -->
-  <div class="main-body">
-    <aside class="slide-sidebar" id="slideSidebar">
+      <select id="boardGridSelect" class="select-box" title="Default Grid Overlay">
+        <option value="none">No Grid</option>
+        <option value="dots">Dot Matrix</option>
+        <option value="grid">Square Physics Grid</option>
+        <option value="ruled">Ruled Lines</option>
+      </select>
+
+      <button class="btn" id="clearSlideInkBtn" title="Clear all ink on current slide">🧹 Clear Ink</button>
+      <button class="btn danger" id="deleteCurrentSlideBtn" title="Delete current slide">🗑️ Delete Slide</button>
+    </div>
+  </div>
+
+  <!-- WORKSPACE -->
+  <div class="workspace">
+    <!-- SLIM SIDEBAR -->
+    <aside class="sidebar" id="sidebarPanel">
       <div class="sidebar-header">
-        <span id="lblActiveDeckTitle">Slides (<b id="lblTotalSlides">1</b>)</span>
-        <button class="t-btn" style="padding:2px 6px;" onclick="cycleSidebarMode()" title="Collapse Sidebar">◀</button>
+        <span>SLIDES (<span id="totalSlidesCount">1</span>)</span>
+        <button class="btn" id="collapseSidebarInnerBtn" style="padding:1px 5px;font-size:10px;">◀</button>
       </div>
-      <div class="sidebar-slide-actions">
-        <button class="t-btn" onclick="addBlankSlideAt(state.currentSlideIdx + 1)">+ Blank</button>
-        <button class="t-btn" onclick="duplicateCurrentSlide()">⧉ Copy</button>
-        <button class="t-btn" onclick="moveSlideOrder(-1)">▲ Up</button>
-        <button class="t-btn" onclick="moveSlideOrder(1)">▼ Down</button>
+      <div class="sidebar-actions">
+        <button class="btn" id="sideAddBlankBtn">+ Blank</button>
+        <button class="btn" id="sideDupSlideBtn">⧉ Copy</button>
+        <button class="btn" id="sideMoveUpBtn">▲ Up</button>
+        <button class="btn" id="sideMoveDownBtn">▼ Down</button>
       </div>
-      <div class="thumb-list" id="thumbList"></div>
+      <div class="slides-list" id="slidesListContainer"></div>
     </aside>
 
-    <main class="board-viewport" id="boardViewport">
-      <div id="board-stage">
+    <!-- STAGE AREA -->
+    <main class="stage-container" id="stageContainer">
+      <div class="board-viewport" id="boardViewport">
         <canvas id="bgCanvas" width="1920" height="1080"></canvas>
         <canvas id="inkCanvas" width="1920" height="1080"></canvas>
         <canvas id="tempCanvas" width="1920" height="1080"></canvas>
-
-        <div id="rulerWidget" class="phys-widget">
-          <div style="font-size:0.75rem; font-weight:700; display:flex; justify-content:space-between;">
-            <span>PHYSICS STRAIGHTEDGE RULER (Drag to move, drag blue handle to rotate)</span>
-            <span id="rulerAngleLbl">0.0°</span>
-          </div>
-          <div id="rulerTicks" style="height:26px; border-top:2px solid #1e293b; display:flex; justify-content:space-between; font-family:monospace; font-size:11px;">
-            <span>0cm</span><span>5</span><span>10</span><span>15</span><span>20</span><span>25</span><span>30cm</span>
-          </div>
-          <div class="widget-handle" data-rotate-target="rulerWidget" title="Drag vertically to rotate ruler">↻</div>
-        </div>
-
-        <div id="protractorWidget" class="phys-widget">
-          <svg viewBox="0 0 380 195" width="100%" height="100%" style="pointer-events:none;">
-            <path d="M 10 190 A 180 180 0 0 1 370 190 Z" fill="none" stroke="#1e293b" stroke-width="2"/>
-            <line x1="190" y1="190" x2="190" y2="10" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="4,4"/>
-            <circle cx="190" cy="190" r="5" fill="#dc2626"/>
-            <text x="178" y="30" font-size="13" font-family="monospace" font-weight="bold">90°</text>
-            <text x="55" y="85" font-size="12" font-family="monospace">135°</text>
-            <text x="300" y="85" font-size="12" font-family="monospace">45°</text>
-            <text x="16" y="184" font-size="12" font-family="monospace">180°</text>
-            <text x="348" y="184" font-size="12" font-family="monospace">0°</text>
-          </svg>
-          <div class="widget-handle" data-rotate-target="protractorWidget" title="Drag to rotate protractor">↻</div>
-        </div>
-
-        <div id="textOverlayBox">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; font-size:0.72rem; color:var(--ui-muted);">
-            <span>Type Text or Physics Formula (Click Commit when done)</span>
-            <div style="display:flex; gap:4px;">
-              <button class="t-btn" style="padding:2px 6px;" onclick="commitTextOverlay()">✅ Commit</button>
-              <button class="t-btn danger" style="padding:2px 6px;" onclick="cancelTextOverlay()">✕</button>
-            </div>
-          </div>
-          <div id="textOverlayInput" contenteditable="true">F⃗ = q(E⃗ + v⃗ × B⃗)</div>
-          <div class="math-symbol-bar">
-            <span class="sym-chip" onclick="insertMathSym('⃗')">x⃗</span>
-            <span class="sym-chip" onclick="insertMathSym('̂')">î</span>
-            <span class="sym-chip" onclick="insertMathSym('Δ')">Δ</span>
-            <span class="sym-chip" onclick="insertMathSym('θ')">θ</span>
-            <span class="sym-chip" onclick="insertMathSym('ω')">ω</span>
-            <span class="sym-chip" onclick="insertMathSym('λ')">λ</span>
-            <span class="sym-chip" onclick="insertMathSym('μ₀')">μ₀</span>
-            <span class="sym-chip" onclick="insertMathSym('ε₀')">ε₀</span>
-            <span class="sym-chip" onclick="insertMathSym('∫')">∫</span>
-            <span class="sym-chip" onclick="insertMathSym('∑')">∑</span>
-            <span class="sym-chip" onclick="insertMathSym('√')">√</span>
-            <span class="sym-chip" onclick="insertMathSym('≈')">≈</span>
-            <span class="sym-chip" onclick="insertMathSym('≠')">≠</span>
-            <span class="sym-chip" onclick="insertMathSym('±')">±</span>
-            <span class="sym-chip" onclick="insertMathSym('²')">x²</span>
-            <span class="sym-chip" onclick="insertMathSym('₁')">x₁</span>
-            <span class="sym-chip" onclick="insertMathSym('₂')">x₂</span>
-          </div>
-        </div>
+        <canvas id="laserCanvas" width="1920" height="1080"></canvas>
       </div>
     </main>
   </div>
 
-  <!-- BOTTOM NAVIGATION & PRESENTER BAR -->
-  <footer class="bottom-nav">
-    <div class="tool-cluster">
-      <button class="t-btn" onclick="goToSlide(state.currentSlideIdx - 1)" title="Previous Slide (Left / PageUp)">◀ Prev</button>
-      <span class="mono-stat" style="margin:0 8px;">Slide <b id="lblCurSlide" style="color:var(--ui-text);">1</b> / <b id="lblMaxSlide">1</b></span>
-      <button class="t-btn" onclick="goToSlide(state.currentSlideIdx + 1)" title="Next Slide (Right / PageDown)">Next ▶</button>
-      <button class="t-btn" onclick="openSlideOverviewModal()" title="View All Slides in Grid">⊞ Overview</button>
-    </div>
+  <!-- PRESENT MODE FLOATING DOCK (PEN COLORS + TOOLS, NO LASER) -->
+  <div class="present-dock" id="presentDock">
+    <button class="btn" id="presPrevBtn" title="Previous Slide (Left Arrow)">◀</button>
+    <span id="presSlideIndicator" style="font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;padding:0 4px;">1 / 1</span>
+    <button class="btn" id="presNextBtn" title="Next Slide (Right Arrow)">▶</button>
+    <button class="btn" id="presNewSlideBtn" title="Add Blank Slide">+ Slide</button>
 
-    <div class="tool-cluster">
-      <span class="mono-stat" id="stylusTelemetry">Tool: PEN | Ready</span>
-      <div class="divider"></div>
-      <span class="mono-stat">⏱️ <b id="lblTimer" style="color:var(--ui-text);">00:00</b></span>
-      <button class="t-btn" onclick="toggleTimer()" id="btnTimer">Start Timer</button>
-    </div>
+    <div class="divider"></div>
 
-    <div class="tool-cluster">
-      <button class="t-btn" onclick="adjustZoom(-0.12)">🔍 −</button>
-      <span class="mono-stat" id="lblZoom" style="min-width:48px; text-align:center;">100%</span>
-      <button class="t-btn" onclick="adjustZoom(0.12)">🔍 +</button>
-      <button class="t-btn" onclick="fitBoardToScreen()">⛶ Fit Screen</button>
-    </div>
-  </footer>
+    <!-- Quick Pen Colors right inside Present Mode -->
+    <div class="color-dot present-color active" data-color="#ffffff" style="background:#ffffff;" title="White Pen"></div>
+    <div class="color-dot present-color" data-color="#facc15" style="background:#facc15;" title="Yellow Pen"></div>
+    <div class="color-dot present-color" data-color="#38bdf8" style="background:#38bdf8;" title="Cyan Pen"></div>
+    <div class="color-dot present-color" data-color="#4ade80" style="background:#4ade80;" title="Green Pen"></div>
+    <div class="color-dot present-color" data-color="#fb7185" style="background:#fb7185;" title="Coral Red Pen"></div>
+    <input type="color" id="presCustomColor" value="#ffffff" style="width:20px;height:20px;border:none;background:none;cursor:pointer;" title="Custom Pen Color" />
 
-  <!-- FLOATING MINI CONTROL PILL FOR PRESENTATION MODE -->
-  <div id="presFloatingPill">
-    <button class="t-btn" onclick="goToSlide(state.currentSlideIdx - 1)">◀</button>
-    <span class="mono-stat" id="lblPresSlide" style="color:#fff;">1/1</span>
-    <button class="t-btn" onclick="goToSlide(state.currentSlideIdx + 1)">▶</button>
-    <button class="t-btn" onclick="selectTool('pen')">✒️</button>
-    <button class="t-btn" onclick="selectTool('laser')">🔴</button>
-    <button class="t-btn" onclick="selectTool('eraser')">🧹</button>
-    <button class="t-btn" onclick="setBoardMode('teaching')" title="Exit Presentation Mode (Esc)">✕ Exit</button>
+    <div class="divider"></div>
+
+    <button class="btn active" id="presPenBtn" title="Pen Tool (P)">✏️</button>
+    <button class="btn" id="presEraserBtn" title="Eraser Toggle (E)">🧹</button>
+    <button class="btn" id="presUndoBtn" title="Undo (Ctrl+Z)">↩</button>
+    <button class="btn" id="presClearBtn" title="Clear Slide Ink">🗑️</button>
+    <button class="btn danger" id="exitPresentBtn" title="Exit Present Mode (Esc)">✕ Exit</button>
   </div>
 
-  <!-- MODAL 1: BOARD BACKGROUND & GRID CUSTOMISATION (GLOBAL DEFAULT MEMORY) -->
-  <div class="modal-backdrop" id="bgModal">
+  <!-- BOTTOM BAR -->
+  <div class="bottom-bar">
+    <div class="bottom-group">
+      <button class="btn" id="prevSlideBtn">◀ Prev</button>
+      <span id="bottomSlideIndicator" style="font-family:'JetBrains Mono',monospace;">Slide 1 / 1</span>
+      <button class="btn" id="nextSlideBtn">Next ▶</button>
+    </div>
+
+    <div class="bottom-group">
+      <span id="statusToolLabel" style="font-family:'JetBrains Mono',monospace;">Tool: PEN | Shortcuts: Ctrl+A (Arrow), Ctrl+L (Line), E (Eraser), L (Laser)</span>
+    </div>
+
+    <div class="bottom-group">
+      <button class="btn" id="zoomOutBtn">➖</button>
+      <span id="zoomPercentLabel" style="font-family:'JetBrains Mono',monospace;min-width:44px;text-align:center;">100%</span>
+      <button class="btn" id="zoomInBtn">➕</button>
+      <button class="btn" id="zoomFitBtn">⛶ Fit Screen</button>
+    </div>
+  </div>
+
+  <!-- SAVE / EXPORT MODAL -->
+  <div class="modal-backdrop" id="saveModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>🎨 Slide Background & Physics Grid Settings</h3>
-        <button class="t-btn" onclick="closeModal('bgModal')">✕ Close</button>
+        <h3>💾 Lesson Session Management & Optimized Export</h3>
+        <button class="btn" id="closeSaveModalBtn">✕ Close</button>
       </div>
-      <p style="font-size:0.8rem; color:var(--ui-muted);">
-        Jo bhi Background ya Grid aap yahan chunen-ge, wo <b>saare Blank Boards par apply ho jayega</b> aur aage jitne bhi naye <b>+ Blank</b> slides banayenge unpe bhi automatically yahi aayega!
-      </p>
-      <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:600; color:#38bdf8; cursor:pointer;">
-        <input type="checkbox" id="chkApplyAllBlank" checked style="width:16px; height:16px; accent-color:#38bdf8;" />
-        <span>Apply to all existing & future Blank Boards automatically</span>
-      </label>
-      <h4 style="font-size:0.82rem;">Board Background Color</h4>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;" id="bgColorButtons">
-        <button class="t-btn bg-choice-btn" data-bg="#0f172a" onclick="setSlideBg('#0f172a', null)">Chalkboard Dark</button>
-        <button class="t-btn bg-choice-btn" data-bg="#062c1e" onclick="setSlideBg('#062c1e', null)">Classic Greenboard</button>
-        <button class="t-btn bg-choice-btn" data-bg="#ffffff" onclick="setSlideBg('#ffffff', null)">Plain White</button>
-        <button class="t-btn bg-choice-btn" data-bg="#000000" onclick="setSlideBg('#000000', null)">Pure Black</button>
-        <button class="t-btn bg-choice-btn" data-bg="#f8fafc" onclick="setSlideBg('#f8fafc', null)">Light Grey</button>
-        <button class="t-btn bg-choice-btn" data-bg="#fefce8" onclick="setSlideBg('#fefce8', null)">Warm Cream</button>
-        <input type="color" id="customBgColorInput" onchange="setSlideBg(this.value, null)" title="Custom Board Color" style="height:32px; width:48px; cursor:pointer;" />
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+        <label style="font-size:12px;color:var(--text-muted);white-space:nowrap;">File / Deck Name:</label>
+        <input type="text" id="modalDeckNameInput" class="deck-title-input" style="flex:1;width:auto;" placeholder="Enter file name before export/save..." />
       </div>
-      <h4 style="font-size:0.82rem; margin-top:6px;">Grid & Pattern Overlay</h4>
-      <div style="display:flex; gap:8px; flex-wrap:wrap;" id="gridPatternButtons">
-        <button class="t-btn grid-choice-btn" data-grid="none" onclick="setSlideBg(null, 'none')">No Grid</button>
-        <button class="t-btn grid-choice-btn" data-grid="fineGrid" onclick="setSlideBg(null, 'fineGrid')">Fine Grid</button>
-        <button class="t-btn grid-choice-btn" data-grid="largeGrid" onclick="setSlideBg(null, 'largeGrid')">Large Grid</button>
-        <button class="t-btn grid-choice-btn" data-grid="graphPaper" onclick="setSlideBg(null, 'graphPaper')">Millimetre Graph Paper</button>
-        <button class="t-btn grid-choice-btn" data-grid="ruled" onclick="setSlideBg(null, 'ruled')">Ruled Notebook</button>
-        <button class="t-btn grid-choice-btn" data-grid="dotted" onclick="setSlideBg(null, 'dotted')">Isometric Dots</button>
+
+      <div class="modal-grid">
+        <button class="btn" id="exportCurrentPngBtn">🖼️ Export Current Slide (HD PNG)</button>
+        <button class="btn active" id="exportAnnotatedPdfBtn">📄 Export Annotated Lesson (Optimized PDF)</button>
+        <button class="btn" id="exportCleanPdfBtn">📑 Export Clean Slides Without Ink (PDF)</button>
+        <button class="btn" id="downloadJsonDeckBtn">📦 Download Deck File (.physboard)</button>
+        <button class="btn success" id="saveDeckToDbBtn">💾 Save Lesson to Browser Library</button>
+        <button class="btn danger" id="resetDeckCompletelyBtn">🗑️ Delete / Reset Current Lesson</button>
       </div>
-      <div style="border-top:1px solid var(--ui-border); padding-top:10px; display:flex; justify-content:space-between;">
-        <button class="t-btn" onclick="restoreOriginalSlideBg()">↺ Restore Original Imported Slide Appearance</button>
-        <button class="t-btn active" onclick="closeModal('bgModal')">Done</button>
-      </div>
+
+      <div class="status-msg" id="exportStatusMsg">Ready. Optimized PDF engine keeps 15 slides under ~3–4 MB!</div>
     </div>
   </div>
 
-  <!-- MODAL 2: MULTI-DECK / UPLOADED FILES LIBRARY MANAGER -->
+  <!-- MY DECKS LIBRARY MODAL -->
   <div class="modal-backdrop" id="decksModal">
     <div class="modal-card">
       <div class="modal-header">
-        <h3>📚 My Saved Decks & Uploaded Files Library</h3>
-        <button class="t-btn" onclick="closeModal('decksModal')">✕ Close</button>
+        <h3>📚 My Saved Lesson Decks (IndexedDB Library)</h3>
+        <button class="btn" id="closeDecksModalBtn">✕ Close</button>
       </div>
-      <p style="font-size:0.8rem; color:var(--ui-muted);">
-        Every uploaded PDF, PPTX, or lecture session can be stored as a separate deck here so you can switch between different classes anytime!
-      </p>
-      <div style="display:flex; gap:8px;">
-        <button class="t-btn active" onclick="createNewEmptyDeck()">➕ Create New Blank Deck</button>
-        <button class="t-btn" onclick="closeModal('decksModal'); document.getElementById('fileImportInput').click();">📂 Upload PDF/PPTX into Current Deck</button>
+      <p style="font-size:12px;color:var(--text-muted);">Load any saved class deck or delete old decks permanently so old filenames never reappear:</p>
+      <div class="deck-list-box" id="savedDecksListContainer"></div>
+      <div style="margin-top:12px;display:flex;justify-content:space-between;">
+        <button class="btn danger" id="clearAllDecksDbBtn">🔥 Wipe All Saved Decks</button>
+        <button class="btn" id="startBlankFromModalBtn">✨ Create New Blank Deck</button>
       </div>
-      <div id="decksListContainer" style="display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto;"></div>
-    </div>
-  </div>
-
-  <!-- MODAL 3: XP-PEN TABLET & SHORTCUT CONFIGURATION -->
-  <div class="modal-backdrop" id="xpPenModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>⚡ XP-Pen Deco Mini 7 V2 & Keyboard Shortcut Mapping</h3>
-        <button class="t-btn" onclick="closeModal('xpPenModal')">✕ Close</button>
-      </div>
-      <p style="font-size:0.8rem; color:var(--ui-muted); line-height:1.45;">
-        Built-in support for your XP-Pen combo shortcuts! Both single keys and <code>Ctrl + Key</code> combinations work automatically:
-      </p>
-      <div style="background:var(--ui-card); padding:10px 14px; border-radius:8px; font-size:0.79rem; line-height:1.6; border:1px solid var(--ui-border);">
-        • <b><code>Ctrl + A</code></b> &rarr; Selects <b>Vector / Single Arrow Tool</b> immediately<br>
-        • <b><code>Ctrl + L</code></b> &rarr; Selects <b>Straight Line Tool</b> immediately<br>
-        • <b><code>Ctrl + Z</code></b> / <b><code>Z</code></b> &rarr; <b>Undo</b> last stroke<br>
-        • <b><code>Ctrl + E</code></b> / <b><code>E</code></b> &rarr; Selects <b>Eraser Tool</b> (stays on Eraser until you switch)<br>
-        • <b><code>P</code></b> &rarr; Selects <b>Pen Tool</b> | <b><code>L</code></b> (without Ctrl) &rarr; Selects <b>Laser Pointer</b>
-      </div>
-      <div class="shortcut-grid" id="shortcutGridContainer"></div>
-    </div>
-  </div>
-
-  <!-- MODAL 4: SAVE SESSION & EXPORT LESSON -->
-  <div class="modal-backdrop" id="exportModal">
-    <div class="modal-card">
-      <div class="modal-header">
-        <h3>💾 Lesson Session Management & Export</h3>
-        <button class="t-btn" onclick="closeModal('exportModal')">✕ Close</button>
-      </div>
-      <div style="display:flex; gap:8px; align-items:center;">
-        <span style="font-size:0.82rem; font-weight:600;">Active Deck Name:</span>
-        <input type="text" id="inpLessonName" value="Class_12_Physics_Lecture" onchange="renameCurrentDeck(this.value)" style="flex:1; padding:6px 10px; border-radius:6px; border:1px solid var(--ui-border); background:var(--ui-card); color:var(--ui-text);" />
-      </div>
-      <div class="shortcut-grid">
-        <button class="t-btn" onclick="exportCurrentSlidePNG()">🖼️ Export Current Slide (Ultra-HD PNG)</button>
-        <button class="t-btn active" onclick="exportAllAnnotatedPDF()">📄 Export Annotated Lesson (PDF)</button>
-        <button class="t-btn" onclick="exportCleanPDF()">📄 Export Original Slides Without Ink (PDF)</button>
-        <button class="t-btn" onclick="downloadProjectJSON()">📦 Download Deck File (.physboard JSON)</button>
-        <button class="t-btn" onclick="saveToIndexedDBManual()">💾 Save All Decks to Browser Storage</button>
-        <button class="t-btn" onclick="document.getElementById('fileImportInput').click(); closeModal('exportModal')">📂 Open Saved .physboard File</button>
-      </div>
-      <div id="exportStatusMsg" style="font-size:0.78rem; color:var(--ui-success); font-weight:600;">
-        ✓ Multi-Deck IndexedDB Autosave is active.
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL 5: SLIDE OVERVIEW GRID -->
-  <div class="modal-backdrop" id="overviewModal">
-    <div class="modal-card" style="max-width:960px;">
-      <div class="modal-header">
-        <h3>⊞ All Slides Overview</h3>
-        <button class="t-btn" onclick="closeModal('overviewModal')">✕ Close</button>
-      </div>
-      <div id="overviewGridContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px;"></div>
     </div>
   </div>
 
   <script>
+    // Configure PDF.js worker
     if (window.pdfjsLib) {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
     }
 
-    const LOGICAL_W = 1920;
-    const LOGICAL_H = 1080;
+    // ==========================================
+    // 1. STATE & GLOBAL PREFERENCES
+    // ==========================================
+    const BOARD_W = 1920;
+    const BOARD_H = 1080;
 
-    // Load saved default BG & Grid from localStorage so your preferred board style persists forever!
-    const savedDefaultBg = localStorage.getItem('physix_default_bg') || '#062c1e';
-    const savedDefaultGrid = localStorage.getItem('physix_default_grid') || 'none';
+    let defaultBgColor = localStorage.getItem('physix_default_bg') || '#0d3b26';
+    let defaultGridType = localStorage.getItem('physix_default_grid') || 'none';
 
-    const state = {
-      boardMode: 'teaching',
-      sidebarMode: 'full',
-      tool: 'pen',
-      subShape: 'arrow1',
-      subGeo: 'rect',
-      eraserType: 'stroke',
-      inkColor: '#ffffff',
-      penWidth: 4.5,
-      defaultBgColor: savedDefaultBg,
-      defaultGridPattern: savedDefaultGrid,
-      penOnly: false,
-      laserHalo: true,
-      zoom: 1.0,
-      panX: 0,
-      panY: 0,
-      currentSlideIdx: 0,
-      returnSlideIdx: null,
-      slides: [],
-      decks: [],
-      activeDeckId: null,
-      laserTrail: [],
-      selectedObjIdx: -1,
-      shortcuts: {
-        undo: 'z',
-        eraser: 'e',
-        laser: 'l',
-        prevSlide: 'ArrowLeft',
-        nextSlide: 'ArrowRight',
-        pen: 'p',
-        blankBoard: 'b'
-      }
-    };
+    let currentDeckId = 'deck_' + Date.now();
+    let currentDeckName = 'Untitled Lesson';
 
-    const stageEl = document.getElementById('board-stage');
+    let slides = [];
+    let currentSlideIndex = 0;
+
+    let currentTool = 'pen'; // pen, highlighter, eraser, laser, line, shape, text
+    let penColor = '#ffffff';
+    let strokeWidth = 4;
+    let lineSubType = 'arrow';
+    let shapeSubType = 'rect';
+    let eraserMode = 'stroke';
+
+    let zoomMode = 'fit'; // 'fit' or numeric scale
+    let manualZoom = 1.0;
+
+    let isDrawing = false;
+    let currentPoints = [];
+    let startPt = null;
+
+    // Laser trail points
+    let laserTrail = [];
+    let laserAnimFrame = null;
+
+    // DOM Elements
     const bgCanvas = document.getElementById('bgCanvas');
-    const bgCtx = bgCanvas.getContext('2d');
     const inkCanvas = document.getElementById('inkCanvas');
-    const inkCtx = inkCanvas.getContext('2d');
     const tempCanvas = document.getElementById('tempCanvas');
+    const laserCanvas = document.getElementById('laserCanvas');
+
+    const bgCtx = bgCanvas.getContext('2d');
+    const inkCtx = inkCanvas.getContext('2d');
     const tempCtx = tempCanvas.getContext('2d');
+    const laserCtx = laserCanvas.getContext('2d');
 
-    [bgCtx, inkCtx, tempCtx].forEach(c => {
-      c.imageSmoothingEnabled = true;
-      c.imageSmoothingQuality = 'high';
-    });
+    const boardViewport = document.getElementById('boardViewport');
+    const stageContainer = document.getElementById('stageContainer');
+    const activeDeckNameInput = document.getElementById('activeDeckNameInput');
+    const modalDeckNameInput = document.getElementById('modalDeckNameInput');
+    const exportStatusMsg = document.getElementById('exportStatusMsg');
 
-    // UPDATED: Every new Blank Board automatically inherits state.defaultBgColor & state.defaultGridPattern!
-    function createSlide({
-      type = 'blank',
-      title = 'Blank Board',
-      bgColor = null,
-      gridPattern = null,
-      sourceDataUrl = null,
-      pptxElements = null
-    } = {}) {
-      const resolvedBg = bgColor !== null ? bgColor : (type === 'blank' ? state.defaultBgColor : '#ffffff');
-      const resolvedGrid = gridPattern !== null ? gridPattern : (type === 'blank' ? state.defaultGridPattern : 'none');
-      return {
-        id: 'sld_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        type,
-        title,
-        bgColor: resolvedBg,
-        origBgColor: resolvedBg,
-        gridPattern: resolvedGrid,
-        origGridPattern: resolvedGrid,
-        overrideBg: false,
-        sourceDataUrl,
-        pptxElements: pptxElements || [],
-        strokes: [],
-        redoStack: [],
-        objects: [],
-        thumbUrl: null
-      };
-    }
+    // Sync initial selects
+    document.getElementById('boardBgSelect').value = defaultBgColor;
+    document.getElementById('boardGridSelect').value = defaultGridType;
 
-    function currentSlide() {
-      return state.slides[state.currentSlideIdx];
-    }
-
-    // --- MULTI-DECK INDEXEDDB STORAGE ENGINE ---
+    // ==========================================
+    // 2. INDEXEDDB MULTI-DECK LIBRARY
+    // ==========================================
     const DB_NAME = 'PhysixSmartBoardDB_v2';
-    const STORE_NAME = 'library';
+    const STORE_NAME = 'decks';
     let dbInstance = null;
 
-    function initIndexedDB() {
-      return new Promise((resolve) => {
-        const req = indexedDB.open(DB_NAME, 1);
+    function initDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, 2);
         req.onupgradeneeded = (e) => {
           const db = e.target.result;
           if (!db.objectStoreNames.contains(STORE_NAME)) {
@@ -958,1626 +743,1327 @@
         };
         req.onsuccess = (e) => {
           dbInstance = e.target.result;
+          refreshDeckCountBadge();
           resolve(dbInstance);
         };
-        req.onerror = () => resolve(null);
+        req.onerror = (e) => reject(e);
       });
     }
 
-    function syncActiveDeckRecord() {
-      if (!state.activeDeckId) return;
-      const deck = state.decks.find(d => d.id === state.activeDeckId);
-      if (deck) {
-        deck.name = document.getElementById('inpLessonName').value || deck.name;
-        deck.updatedAt = Date.now();
-        deck.currentSlideIdx = state.currentSlideIdx;
-        deck.slides = state.slides;
-      }
-      document.getElementById('lblDeckCount').textContent = state.decks.length;
-    }
-
-    function autoSaveSession() {
-      syncActiveDeckRecord();
-      if (!dbInstance) return;
-      try {
+    function saveCurrentDeckToDB(customName) {
+      return new Promise((resolve, reject) => {
+        if (!dbInstance) return reject('DB not ready');
+        if (customName) {
+          currentDeckName = customName.trim() || 'Untitled Lesson';
+          activeDeckNameInput.value = currentDeckName;
+          modalDeckNameInput.value = currentDeckName;
+        }
         const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
         const store = tx.objectStore(STORE_NAME);
-        store.put({
-          id: 'master_library',
-          activeDeckId: state.activeDeckId,
-          decks: state.decks
-        });
-      } catch (err) {
-        console.warn('Autosave skipped:', err);
-      }
-    }
-
-    window.saveToIndexedDBManual = function() {
-      autoSaveSession();
-      document.getElementById('exportStatusMsg').textContent =
-        '✓ Saved all decks to browser storage at ' + new Date().toLocaleTimeString();
-    };
-
-    async function loadLibraryOrInit() {
-      await initIndexedDB();
-      if (dbInstance) {
-        const tx = dbInstance.transaction(STORE_NAME, 'readonly');
-        const req = tx.objectStore(STORE_NAME).get('master_library');
-        req.onsuccess = () => {
-          if (req.result && Array.isArray(req.result.decks) && req.result.decks.length > 0) {
-            state.decks = req.result.decks;
-            const targetId = req.result.activeDeckId || state.decks[0].id;
-            switchToDeck(targetId);
-          } else {
-            initDefaultDeck();
-          }
+        const record = {
+          id: currentDeckId,
+          name: currentDeckName,
+          updatedAt: Date.now(),
+          slides: JSON.parse(JSON.stringify(slides))
         };
-        req.onerror = () => initDefaultDeck();
-      } else {
-        initDefaultDeck();
-      }
-    }
-
-    function initDefaultDeck() {
-      const firstDeck = {
-        id: 'deck_' + Date.now(),
-        name: 'Class_12_Physics_Lecture',
-        updatedAt: Date.now(),
-        currentSlideIdx: 0,
-        slides: [
-          createSlide({
-            type: 'blank',
-            title: 'Board 1'
-          })
-        ]
-      };
-      state.decks = [firstDeck];
-      switchToDeck(firstDeck.id);
-    }
-
-    window.switchToDeck = function(deckId) {
-      syncActiveDeckRecord();
-      const target = state.decks.find(d => d.id === deckId);
-      if (!target) return;
-      state.activeDeckId = target.id;
-      state.slides = target.slides;
-      state.currentSlideIdx = Math.min(target.currentSlideIdx || 0, Math.max(0, state.slides.length - 1));
-      document.getElementById('inpLessonName').value = target.name;
-      document.getElementById('lblDeckCount').textContent = state.decks.length;
-      fitBoardToScreen();
-      renderCurrentSlideAll();
-      rebuildThumbnails();
-    };
-
-    window.createNewEmptyDeck = function(customName) {
-      syncActiveDeckRecord();
-      const name = customName || prompt('Enter name for the new Deck / Lecture:', `Physics_Deck_${state.decks.length + 1}`);
-      if (!name) return;
-      const newDeck = {
-        id: 'deck_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
-        name,
-        updatedAt: Date.now(),
-        currentSlideIdx: 0,
-        slides: [
-          createSlide({
-            type: 'blank',
-            title: 'Board 1'
-          })
-        ]
-      };
-      state.decks.push(newDeck);
-      switchToDeck(newDeck.id);
-      renderDecksModalList();
-      closeModal('decksModal');
-    };
-
-    window.deleteDeckById = function(deckId) {
-      if (state.decks.length <= 1) {
-        state.slides = [createSlide({ type: 'blank', title: 'Board 1' })];
-        state.currentSlideIdx = 0;
-        syncActiveDeckRecord();
-        renderCurrentSlideAll();
-        rebuildThumbnails();
-        renderDecksModalList();
-        return;
-      }
-      if (!confirm('Delete this entire deck and its slides?')) return;
-      state.decks = state.decks.filter(d => d.id !== deckId);
-      if (state.activeDeckId === deckId) {
-        switchToDeck(state.decks[0].id);
-      }
-      autoSaveSession();
-      renderDecksModalList();
-    };
-
-    window.renameCurrentDeck = function(newName) {
-      if (!newName.trim()) return;
-      syncActiveDeckRecord();
-      autoSaveSession();
-    };
-
-    window.openDecksModal = function() {
-      syncActiveDeckRecord();
-      renderDecksModalList();
-      openModal('decksModal');
-    };
-
-    function renderDecksModalList() {
-      const container = document.getElementById('decksListContainer');
-      container.innerHTML = '';
-      state.decks.forEach((d) => {
-        const isCurrent = d.id === state.activeDeckId;
-        const row = document.createElement('div');
-        row.className = `deck-item ${isCurrent ? 'active-deck' : ''}`;
-        row.innerHTML = `
-          <div>
-            <div style="font-weight:700; font-size:0.88rem; color:#fff;">
-              ${isCurrent ? '🟢 ' : '📁 '}${d.name}
-            </div>
-            <div style="font-size:0.73rem; color:var(--ui-muted); margin-top:2px;">
-              ${d.slides.length} Slides &bull; Updated ${new Date(d.updatedAt).toLocaleTimeString()}
-            </div>
-          </div>
-          <div style="display:flex; gap:6px;">
-            ${!isCurrent ? `<button class="t-btn active" onclick="switchToDeck('${d.id}'); closeModal('decksModal');">Open Deck</button>` : `<span class="t-btn" style="cursor:default;">Active</span>`}
-            <button class="t-btn danger" onclick="deleteDeckById('${d.id}')">🗑️ Delete</button>
-          </div>
-        `;
-        container.appendChild(row);
+        store.put(record);
+        tx.oncomplete = () => {
+          refreshDeckCountBadge();
+          resolve(record);
+        };
+        tx.onerror = (err) => reject(err);
       });
     }
 
-    // --- HIGH-DEFINITION BACKGROUND & DOCUMENT RENDERING ---
-    const imageCache = new Map();
-    function getCachedImage(dataUrl) {
-      if (!dataUrl) return Promise.resolve(null);
-      if (imageCache.has(dataUrl)) return Promise.resolve(imageCache.get(dataUrl));
+    function getAllDecksFromDB() {
       return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-          imageCache.set(dataUrl, img);
-          resolve(img);
-        };
-        img.onerror = () => resolve(null);
-        img.src = dataUrl;
+        if (!dbInstance) return resolve([]);
+        const tx = dbInstance.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.getAll();
+        req.onsuccess = () => resolve(req.result || []);
+        req.onerror = () => resolve([]);
       });
     }
 
-    async function renderBackgroundLayer(slide, ctx = bgCtx) {
-      ctx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-
-      const useImportSource = (slide.type === 'pdf' || slide.type === 'image' || slide.type === 'pptx') && !slide.overrideBg;
-      ctx.fillStyle = useImportSource && slide.type !== 'blank' ? (slide.bgColor || '#ffffff') : slide.bgColor;
-      ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-
-      if (useImportSource && slide.sourceDataUrl) {
-        const img = await getCachedImage(slide.sourceDataUrl);
-        if (img) {
-          const scale = Math.min(LOGICAL_W / img.width, LOGICAL_H / img.height);
-          const dw = img.width * scale;
-          const dh = img.height * scale;
-          ctx.drawImage(img, (LOGICAL_W - dw) / 2, (LOGICAL_H - dh) / 2, dw, dh);
-        }
-      }
-
-      if (useImportSource && slide.type === 'pptx' && Array.isArray(slide.pptxElements)) {
-        for (const el of slide.pptxElements) {
-          if (el.kind === 'image' && el.dataUrl) {
-            const pImg = await getCachedImage(el.dataUrl);
-            if (pImg) ctx.drawImage(pImg, el.x, el.y, el.w, el.h);
-          } else if (el.kind === 'text') {
-            ctx.save();
-            ctx.fillStyle = el.color || '#0f172a';
-            ctx.font = `${el.bold ? '700' : '500'} ${el.fontSize || 32}px 'Inter', sans-serif`;
-            wrapCanvasText(ctx, el.text, el.x, el.y, el.w || 1600, (el.fontSize || 32) * 1.32);
-            ctx.restore();
-          }
-        }
-      }
-
-      drawGridPattern(ctx, slide.gridPattern, slide.bgColor);
-
-      if (Array.isArray(slide.objects)) {
-        for (let i = 0; i < slide.objects.length; i++) {
-          const obj = slide.objects[i];
-          const oImg = await getCachedImage(obj.dataUrl);
-          if (oImg) {
-            ctx.drawImage(oImg, obj.x, obj.y, obj.w, obj.h);
-            if (state.tool === 'select' && state.selectedObjIdx === i) {
-              ctx.save();
-              ctx.strokeStyle = '#38bdf8';
-              ctx.lineWidth = 3;
-              ctx.setLineDash([8, 6]);
-              ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
-              ctx.fillStyle = '#38bdf8';
-              ctx.fillRect(obj.x + obj.w - 12, obj.y + obj.h - 12, 24, 24);
-              ctx.restore();
-            }
-          }
-        }
-      }
+    function deleteDeckFromDB(id) {
+      return new Promise((resolve) => {
+        if (!dbInstance) return resolve();
+        const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).delete(id);
+        tx.oncomplete = () => {
+          refreshDeckCountBadge();
+          resolve();
+        };
+      });
     }
 
-    function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
-      const lines = text.split('\n');
-      let curY = y;
-      for (const rawLine of lines) {
-        const words = rawLine.split(' ');
-        let line = '';
-        for (let n = 0; n < words.length; n++) {
-          const testLine = line + words[n] + ' ';
-          if (ctx.measureText(testLine).width > maxWidth && n > 0) {
-            ctx.fillText(line, x, curY);
-            line = words[n] + ' ';
-            curY += lineHeight;
-          } else {
-            line = testLine;
-          }
-        }
-        ctx.fillText(line, x, curY);
-        curY += lineHeight;
-      }
+    function clearAllDecksFromDB() {
+      return new Promise((resolve) => {
+        if (!dbInstance) return resolve();
+        const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).clear();
+        tx.oncomplete = () => {
+          refreshDeckCountBadge();
+          resolve();
+        };
+      });
     }
 
-    function drawGridPattern(ctx, pattern, bgHex) {
-      if (!pattern || pattern === 'none') return;
-      const isDark = isColorDark(bgHex || '#0f172a');
-      const lineCol = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.09)';
-      const majorCol = isDark ? 'rgba(56, 189, 248, 0.18)' : 'rgba(37, 99, 235, 0.18)';
+    async function refreshDeckCountBadge() {
+      const list = await getAllDecksFromDB();
+      document.getElementById('deckCountBadge').textContent = list.length;
+    }
 
+    // ==========================================
+    // 3. SLIDE DATA STRUCTURE & INITIALIZATION
+    // ==========================================
+    function createBlankSlide() {
+      return {
+        id: 'slide_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6),
+        bgColor: defaultBgColor,
+        gridType: defaultGridType,
+        bgImage: null, // DataURL if PDF/PPTX/Image imported
+        strokes: [],
+        redoStack: [],
+        thumbUrl: null
+      };
+    }
+
+    function resetToBrandNewDeck(newTitle = 'Untitled Lesson') {
+      currentDeckId = 'deck_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5);
+      currentDeckName = newTitle;
+      activeDeckNameInput.value = currentDeckName;
+      modalDeckNameInput.value = currentDeckName;
+      slides = [createBlankSlide()];
+      currentSlideIndex = 0;
+      renderCurrentSlide();
+      updateThumbnailsUI();
+    }
+
+    // Sync Deck Name inputs
+    activeDeckNameInput.addEventListener('input', () => {
+      currentDeckName = activeDeckNameInput.value;
+      modalDeckNameInput.value = currentDeckName;
+    });
+    modalDeckNameInput.addEventListener('input', () => {
+      currentDeckName = modalDeckNameInput.value;
+      activeDeckNameInput.value = currentDeckName;
+    });
+
+    // ==========================================
+    // 4. RESPONSIVE FULL-SPACE VIEWPORT SIZING
+    // ==========================================
+    function updateViewportLayout() {
+      const rect = stageContainer.getBoundingClientRect();
+      const availW = Math.max(200, rect.width - (document.body.classList.contains('present-mode') ? 0 : 8));
+      const availH = Math.max(150, rect.height - (document.body.classList.contains('present-mode') ? 0 : 8));
+
+      let scale;
+      if (document.body.classList.contains('present-mode') || zoomMode === 'fit') {
+        scale = Math.min(availW / BOARD_W, availH / BOARD_H);
+        manualZoom = scale;
+      } else {
+        scale = manualZoom;
+      }
+
+      const finalW = Math.round(BOARD_W * scale);
+      const finalH = Math.round(BOARD_H * scale);
+
+      boardViewport.style.width = finalW + 'px';
+      boardViewport.style.height = finalH + 'px';
+      document.getElementById('zoomPercentLabel').textContent = Math.round(scale * 100) + '%';
+    }
+
+    window.addEventListener('resize', updateViewportLayout);
+
+    // ==========================================
+    // 5. RENDERING ENGINE (BG, GRID & SMOOTH INK)
+    // ==========================================
+    function drawBackgroundAndGrid(ctx, slide, width = BOARD_W, height = BOARD_H) {
       ctx.save();
-      if (pattern === 'fineGrid' || pattern === 'largeGrid') {
-        const step = pattern === 'fineGrid' ? 45 : 90;
-        ctx.strokeStyle = lineCol;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let x = 0; x <= LOGICAL_W; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
-        for (let y = 0; y <= LOGICAL_H; y += step) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
-        ctx.stroke();
-      } else if (pattern === 'graphPaper') {
-        ctx.strokeStyle = lineCol;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let x = 0; x <= LOGICAL_W; x += 24) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
-        for (let y = 0; y <= LOGICAL_H; y += 24) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
-        ctx.stroke();
+      ctx.fillStyle = slide.bgColor || defaultBgColor;
+      ctx.fillRect(0, 0, width, height);
 
-        ctx.strokeStyle = majorCol;
-        ctx.lineWidth = 1.5;
+      // Draw Grid
+      const isLight = slide.bgColor === '#ffffff' || slide.bgColor === '#fef9c3';
+      const gridStroke = isLight ? 'rgba(15, 23, 42, 0.12)' : 'rgba(255, 255, 255, 0.1)';
+      const gType = slide.gridType || 'none';
+
+      if (gType === 'grid') {
+        ctx.strokeStyle = gridStroke;
+        ctx.lineWidth = 1;
+        const step = 48;
         ctx.beginPath();
-        for (let x = 0; x <= LOGICAL_W; x += 120) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
-        for (let y = 0; y <= LOGICAL_H; y += 120) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
+        for (let x = step; x < width; x += step) {
+          ctx.moveTo(x, 0); ctx.lineTo(x, height);
+        }
+        for (let y = step; y < height; y += step) {
+          ctx.moveTo(0, y); ctx.lineTo(width, y);
+        }
         ctx.stroke();
-      } else if (pattern === 'ruled') {
-        ctx.strokeStyle = majorCol;
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        for (let y = 70; y <= LOGICAL_H; y += 54) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
-        ctx.stroke();
-      } else if (pattern === 'dotted') {
-        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.22)' : 'rgba(15,23,42,0.25)';
-        for (let x = 45; x < LOGICAL_W; x += 45) {
-          for (let y = 45; y < LOGICAL_H; y += 45) {
+      } else if (gType === 'dots') {
+        ctx.fillStyle = isLight ? 'rgba(15, 23, 42, 0.22)' : 'rgba(255, 255, 255, 0.2)';
+        const step = 48;
+        for (let x = step; x < width; x += step) {
+          for (let y = step; y < height; y += step) {
             ctx.beginPath();
-            ctx.arc(x, y, 1.8, 0, Math.PI * 2);
+            ctx.arc(x, y, 1.6, 0, Math.PI * 2);
             ctx.fill();
           }
         }
+      } else if (gType === 'ruled') {
+        ctx.strokeStyle = gridStroke;
+        ctx.lineWidth = 1.2;
+        const step = 54;
+        ctx.beginPath();
+        for (let y = step; y < height; y += step) {
+          ctx.moveTo(0, y); ctx.lineTo(width, y);
+        }
+        ctx.stroke();
       }
+
       ctx.restore();
     }
 
-    function isColorDark(hex) {
-      const c = hex.replace('#', '');
-      if (c.length !== 6) return true;
-      const r = parseInt(c.slice(0, 2), 16);
-      const g = parseInt(c.slice(2, 4), 16);
-      const b = parseInt(c.slice(4, 6), 16);
-      return (0.299 * r + 0.587 * g + 0.114 * b) < 128;
+    // Cache loaded images so rendering is instant
+    const imgCache = new Map();
+
+    function renderSlideBackground(slide) {
+      return new Promise((resolve) => {
+        drawBackgroundAndGrid(bgCtx, slide, BOARD_W, BOARD_H);
+        if (!slide.bgImage) return resolve();
+
+        if (imgCache.has(slide.bgImage)) {
+          const im = imgCache.get(slide.bgImage);
+          drawContainedImage(bgCtx, im, BOARD_W, BOARD_H);
+          return resolve();
+        }
+        const img = new Image();
+        img.onload = () => {
+          imgCache.set(slide.bgImage, img);
+          drawContainedImage(bgCtx, img, BOARD_W, BOARD_H);
+          resolve();
+        };
+        img.onerror = () => resolve();
+        img.src = slide.bgImage;
+      });
     }
 
-    // --- ULTRA-SMOOTH VECTOR INK RENDERING ---
-    function renderInkLayer(slide, ctx = inkCtx) {
-      ctx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-      if (!slide || !Array.isArray(slide.strokes)) return;
-      for (const s of slide.strokes) {
-        drawSingleStroke(ctx, s);
-      }
+    function drawContainedImage(ctx, img, cw, ch) {
+      const scale = Math.min(cw / img.width, ch / img.height);
+      const w = img.width * scale;
+      const h = img.height * scale;
+      const x = (cw - w) / 2;
+      const y = (ch - h) / 2;
+      ctx.drawImage(img, x, y, w, h);
     }
 
-    function drawSingleStroke(ctx, s) {
+    function drawSingleStroke(ctx, st) {
       ctx.save();
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
 
-      if (s.tool === 'pixelEraser') {
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.lineWidth = s.width || 32;
-        drawContinuousSmoothCurve(ctx, s.points, s.width || 32);
-        ctx.restore();
-        return;
-      }
+      if (st.type === 'pen' || st.type === 'highlighter' || st.type === 'pixel-eraser') {
+        if (st.type === 'highlighter') {
+          ctx.globalAlpha = 0.35;
+          ctx.strokeStyle = st.color;
+          ctx.lineWidth = st.width * 3.2;
+        } else if (st.type === 'pixel-eraser') {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.lineWidth = st.width * 4.5;
+          ctx.strokeStyle = 'rgba(0,0,0,1)';
+        } else {
+          ctx.strokeStyle = st.color;
+          ctx.lineWidth = st.width;
+        }
 
-      if (s.tool === 'highlighter') {
-        ctx.globalAlpha = 0.35;
-        ctx.lineWidth = Math.max(22, (s.width || 6) * 3.4);
-        ctx.strokeStyle = s.color;
-        drawContinuousSmoothCurve(ctx, s.points, ctx.lineWidth);
-        ctx.restore();
-        return;
-      }
-
-      ctx.strokeStyle = s.color || '#ffffff';
-      ctx.fillStyle = s.color || '#ffffff';
-      ctx.lineWidth = s.width || 4.5;
-
-      if (s.tool === 'pen') {
-        drawContinuousSmoothCurve(ctx, s.points, s.width || 4.5);
-      } else if (s.tool === 'line') {
-        drawLineOrArrow(ctx, s.p1, s.p2, s.subShape, s.width, s.color);
-      } else if (s.tool === 'shape') {
-        drawGeometricPhysicsShape(ctx, s.p1, s.p2, s.subGeo, s.width, s.color);
-      } else if (s.tool === 'text') {
-        ctx.font = `600 ${s.fontSize || 32}px 'Inter', sans-serif`;
-        const lines = (s.text || '').split('\n');
-        lines.forEach((ln, idx) => {
-          ctx.fillText(ln, s.x, s.y + idx * ((s.fontSize || 32) * 1.28));
-        });
-      }
-      ctx.restore();
-    }
-
-    function drawContinuousSmoothCurve(ctx, pts, width) {
-      if (!pts || pts.length === 0) return;
-      ctx.lineWidth = width;
-
-      if (pts.length === 1) {
+        const pts = st.points;
+        if (!pts || pts.length === 0) { ctx.restore(); return; }
         ctx.beginPath();
-        ctx.arc(pts[0].x, pts[0].y, width / 2, 0, Math.PI * 2);
-        ctx.fill();
-        return;
-      }
+        if (pts.length === 1) {
+          ctx.arc(pts[0].x, pts[0].y, ctx.lineWidth / 2, 0, Math.PI * 2);
+          ctx.fillStyle = st.color;
+          ctx.fill();
+        } else {
+          ctx.moveTo(pts[0].x, pts[0].y);
+          for (let i = 1; i < pts.length - 1; i++) {
+            const midX = (pts[i].x + pts[i + 1].x) / 2;
+            const midY = (pts[i].y + pts[i + 1].y) / 2;
+            ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
+          }
+          ctx.lineTo(pts[pts.length - 1].x, pts[pts.length - 1].y);
+          ctx.stroke();
+        }
+      } else if (st.type === 'line') {
+        ctx.strokeStyle = st.color;
+        ctx.fillStyle = st.color;
+        ctx.lineWidth = st.width;
+        if (st.subType === 'dashed') ctx.setLineDash([12, 8]);
 
-      if (pts.length === 2) {
         ctx.beginPath();
-        ctx.moveTo(pts[0].x, pts[0].y);
-        ctx.lineTo(pts[1].x, pts[1].y);
+        ctx.moveTo(st.x1, st.y1);
+        ctx.lineTo(st.x2, st.y2);
         ctx.stroke();
-        return;
+        ctx.setLineDash([]);
+
+        if (st.subType === 'arrow' || st.subType === 'double-arrow') {
+          drawArrowHead(ctx, st.x1, st.y1, st.x2, st.y2, st.width);
+        }
+        if (st.subType === 'double-arrow') {
+          drawArrowHead(ctx, st.x2, st.y2, st.x1, st.y1, st.width);
+        }
+      } else if (st.type === 'shape') {
+        ctx.strokeStyle = st.color;
+        ctx.lineWidth = st.width;
+        const x = Math.min(st.x1, st.x2);
+        const y = Math.min(st.y1, st.y2);
+        const w = Math.abs(st.x2 - st.x1);
+        const h = Math.abs(st.y2 - st.y1);
+
+        ctx.beginPath();
+        if (st.subType === 'rect') {
+          ctx.strokeRect(x, y, w, h);
+        } else if (st.subType === 'circle') {
+          ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        } else if (st.subType === 'triangle') {
+          ctx.moveTo(st.x1, st.y2);
+          ctx.lineTo(st.x2, st.y2);
+          ctx.lineTo(st.x1, st.y1);
+          ctx.closePath();
+          ctx.stroke();
+        } else if (st.subType === 'axes') {
+          // 2D Physics Axes with arrows
+          ctx.moveTo(st.x1, st.y2);
+          ctx.lineTo(st.x2, st.y2);
+          ctx.moveTo(st.x1, st.y2);
+          ctx.lineTo(st.x1, st.y1);
+          ctx.stroke();
+          drawArrowHead(ctx, st.x1, st.y2, st.x2, st.y2, st.width);
+          drawArrowHead(ctx, st.x1, st.y2, st.x1, st.y1, st.width);
+        }
+      } else if (st.type === 'text') {
+        ctx.fillStyle = st.color;
+        ctx.font = `600 ${st.fontSize || 34}px 'Inter', sans-serif`;
+        ctx.fillText(st.text, st.x, st.y);
       }
 
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length - 1; i++) {
-        const midX = (pts[i].x + pts[i + 1].x) * 0.5;
-        const midY = (pts[i].y + pts[i + 1].y) * 0.5;
-        ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
-      }
-      const last = pts[pts.length - 1];
-      ctx.lineTo(last.x, last.y);
-      ctx.stroke();
-    }
-
-    function drawLineOrArrow(ctx, p1, p2, style, width, color) {
-      if (!p1 || !p2) return;
-      ctx.save();
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      ctx.lineWidth = width;
-      if (style === 'dashedLine' || style === 'dashedArrow') {
-        ctx.setLineDash([14, 10]);
-      }
-      ctx.beginPath();
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      const headLen = Math.max(16, width * 3.5);
-      const ang = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-
-      if (style === 'arrow1' || style === 'arrow2' || style === 'dashedArrow') {
-        drawArrowHead(ctx, p2.x, p2.y, ang, headLen);
-      }
-      if (style === 'arrow2') {
-        drawArrowHead(ctx, p1.x, p1.y, ang + Math.PI, headLen);
-      }
       ctx.restore();
     }
 
-    function drawArrowHead(ctx, x, y, angle, headLen) {
+    function drawArrowHead(ctx, x1, y1, x2, y2, lineWidth) {
+      const headLen = Math.max(14, lineWidth * 3.8);
+      const angle = Math.atan2(y2 - y1, x2 - x1);
       ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x - headLen * Math.cos(angle - Math.PI / 6), y - headLen * Math.sin(angle - Math.PI / 6));
-      ctx.lineTo(x - headLen * Math.cos(angle + Math.PI / 6), y - headLen * Math.sin(angle + Math.PI / 6));
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
       ctx.closePath();
       ctx.fill();
     }
 
-    function drawGeometricPhysicsShape(ctx, p1, p2, kind, width, color) {
-      if (!p1 || !p2) return;
-      ctx.save();
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      ctx.lineWidth = width;
-
-      const x = Math.min(p1.x, p2.x);
-      const y = Math.min(p1.y, p2.y);
-      const w = Math.abs(p2.x - p1.x);
-      const h = Math.abs(p2.y - p1.y);
-
-      if (kind === 'rect') {
-        ctx.strokeRect(x, y, w, h);
-      } else if (kind === 'ellipse') {
-        ctx.beginPath();
-        ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
-        ctx.stroke();
-      } else if (kind === 'triangle') {
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p2.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.lineTo(p1.x, p1.y);
-        ctx.closePath();
-        ctx.stroke();
-      } else if (kind === 'axes2d') {
-        drawLineOrArrow(ctx, { x: p1.x, y: p2.y }, { x: p2.x, y: p2.y }, 'arrow1', width, color);
-        drawLineOrArrow(ctx, { x: p1.x, y: p2.y }, { x: p1.x, y: p1.y }, 'arrow1', width, color);
-        ctx.font = 'bold 22px "JetBrains Mono", monospace';
-        ctx.fillText('+X', p2.x + 10, p2.y + 6);
-        ctx.fillText('+Y', p1.x - 14, p1.y - 12);
-      } else if (kind === 'angleArc') {
-        const r = Math.min(90, Math.hypot(p2.x - p1.x, p2.y - p1.y) * 0.45);
-        const ang = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-        const deg = Math.round((-ang * 180) / Math.PI);
-
-        ctx.setLineDash([6, 6]);
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p1.x + Math.max(100, w), p1.y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(p1.x, p1.y, r, 0, ang, ang < 0);
-        ctx.stroke();
-
-        ctx.font = 'bold 22px "JetBrains Mono", monospace';
-        ctx.fillText(`θ = ${Math.abs(deg)}°`, p1.x + r + 12, p1.y - 10);
+    function renderAllInk(slide) {
+      inkCtx.clearRect(0, 0, BOARD_W, BOARD_H);
+      for (const st of slide.strokes) {
+        drawSingleStroke(inkCtx, st);
       }
-      ctx.restore();
     }
 
-    async function renderCurrentSlideAll() {
-      const slide = currentSlide();
+    async function renderCurrentSlide() {
+      const slide = slides[currentSlideIndex];
       if (!slide) return;
-      await renderBackgroundLayer(slide, bgCtx);
-      renderInkLayer(slide, inkCtx);
-      updateBottomSlideReadout();
-      syncBgModalHighlights();
-      updateSlideThumbnail(state.currentSlideIdx);
-      autoSaveSession();
+      document.getElementById('boardBgSelect').value = slide.bgColor || defaultBgColor;
+      document.getElementById('boardGridSelect').value = slide.gridType || defaultGridType;
+      await renderSlideBackground(slide);
+      renderAllInk(slide);
+      updateSlideIndicators();
+      generateSlideThumbnail(currentSlideIndex);
     }
 
-    // --- POINTER EVENTS ---
-    let isDrawing = false;
-    let activeStroke = null;
-    let dragObjOffset = null;
+    function updateSlideIndicators() {
+      const label = `${currentSlideIndex + 1} / ${slides.length}`;
+      document.getElementById('bottomSlideIndicator').textContent = `Slide ${label}`;
+      document.getElementById('presSlideIndicator').textContent = label;
+      document.getElementById('totalSlidesCount').textContent = slides.length;
+    }
 
-    function clientToStageCoords(clientX, clientY) {
-      const rect = tempCanvas.getBoundingClientRect();
+    // ==========================================
+    // 6. POINTER EVENTS & WORKING LASER POINTER
+    // ==========================================
+    function getBoardCoords(e) {
+      const rect = inkCanvas.getBoundingClientRect();
+      const scaleX = BOARD_W / rect.width;
+      const scaleY = BOARD_H / rect.height;
       return {
-        x: ((clientX - rect.left) / rect.width) * LOGICAL_W,
-        y: ((clientY - rect.top) / rect.height) * LOGICAL_H
+        x: (e.clientX - rect.left) * scaleX,
+        y: (e.clientY - rect.top) * scaleY
       };
     }
 
-    tempCanvas.addEventListener('contextmenu', e => e.preventDefault());
+    // Continuous 60fps Laser Render Loop
+    function startLaserLoop() {
+      if (laserAnimFrame) return;
+      function step() {
+        laserCtx.clearRect(0, 0, BOARD_W, BOARD_H);
+        const now = performance.now();
+        laserTrail = laserTrail.filter(p => now - p.t < 420);
 
-    tempCanvas.addEventListener('pointerdown', (e) => {
-      if (state.penOnly && e.pointerType === 'touch') return;
-      e.preventDefault();
-      tempCanvas.setPointerCapture(e.pointerId);
+        if (laserTrail.length > 1) {
+          laserCtx.save();
+          laserCtx.lineCap = 'round';
+          laserCtx.lineJoin = 'round';
 
-      const pt = clientToStageCoords(e.clientX, e.clientY);
-      const effectiveTool = state.tool;
+          for (let i = 1; i < laserTrail.length; i++) {
+            const p0 = laserTrail[i - 1];
+            const p1 = laserTrail[i];
+            const age = (now - p1.t) / 420;
+            const alpha = Math.max(0, 1 - age);
 
-      document.getElementById('stylusTelemetry').textContent =
-        `Tool: ${effectiveTool.toUpperCase()} | Input: ${e.pointerType.toUpperCase()}`;
+            laserCtx.beginPath();
+            laserCtx.moveTo(p0.x, p0.y);
+            laserCtx.lineTo(p1.x, p1.y);
+            laserCtx.strokeStyle = `rgba(255, 30, 50, ${alpha})`;
+            laserCtx.lineWidth = 10 * alpha + 2;
+            laserCtx.shadowColor = '#ff1e32';
+            laserCtx.shadowBlur = 18;
+            laserCtx.stroke();
+          }
 
-      if (effectiveTool === 'text') {
-        openTextOverlayAt(pt.x, pt.y);
+          // Bright tip dot
+          const head = laserTrail[laserTrail.length - 1];
+          laserCtx.beginPath();
+          laserCtx.arc(head.x, head.y, 9, 0, Math.PI * 2);
+          laserCtx.fillStyle = '#ffffff';
+          laserCtx.shadowColor = '#ff1e32';
+          laserCtx.shadowBlur = 24;
+          laserCtx.fill();
+
+          laserCtx.beginPath();
+          laserCtx.arc(head.x, head.y, 5, 0, Math.PI * 2);
+          laserCtx.fillStyle = '#ff1e32';
+          laserCtx.fill();
+
+          laserCtx.restore();
+        } else if (laserTrail.length === 1) {
+          const head = laserTrail[0];
+          laserCtx.save();
+          laserCtx.beginPath();
+          laserCtx.arc(head.x, head.y, 8, 0, Math.PI * 2);
+          laserCtx.fillStyle = '#ff1e32';
+          laserCtx.shadowColor = '#ff1e32';
+          laserCtx.shadowBlur = 20;
+          laserCtx.fill();
+          laserCtx.restore();
+        }
+
+        if (laserTrail.length > 0 || currentTool === 'laser') {
+          laserAnimFrame = requestAnimationFrame(step);
+        } else {
+          laserAnimFrame = null;
+        }
+      }
+      laserAnimFrame = requestAnimationFrame(step);
+    }
+
+    inkCanvas.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 && e.pointerType === 'mouse') return;
+      inkCanvas.setPointerCapture(e.pointerId);
+      const pt = getBoardCoords(e);
+      const slide = slides[currentSlideIndex];
+
+      if (currentTool === 'laser') {
+        isDrawing = true;
+        laserTrail.push({ x: pt.x, y: pt.y, t: performance.now() });
+        startLaserLoop();
         return;
       }
 
-      if (effectiveTool === 'select') {
-        const sld = currentSlide();
-        state.selectedObjIdx = -1;
-        if (sld && Array.isArray(sld.objects)) {
-          for (let i = sld.objects.length - 1; i >= 0; i--) {
-            const o = sld.objects[i];
-            if (pt.x >= o.x && pt.x <= o.x + o.w && pt.y >= o.y && pt.y <= o.y + o.h) {
-              state.selectedObjIdx = i;
-              const isResizeCorner = (pt.x > o.x + o.w - 35 && pt.y > o.y + o.h - 35);
-              dragObjOffset = { mode: isResizeCorner ? 'resize' : 'move', dx: pt.x - o.x, dy: pt.y - o.y };
-              break;
-            }
-          }
+      if (currentTool === 'text') {
+        const userText = prompt('Enter Physics Formula / Text Note:');
+        if (userText && userText.trim()) {
+          slide.strokes.push({
+            type: 'text',
+            text: userText.trim(),
+            x: pt.x,
+            y: pt.y,
+            color: penColor,
+            fontSize: Math.max(26, strokeWidth * 7)
+          });
+          slide.redoStack = [];
+          renderAllInk(slide);
+          generateSlideThumbnail(currentSlideIndex);
         }
-        renderCurrentSlideAll();
         return;
       }
 
       isDrawing = true;
+      startPt = pt;
+      currentPoints = [pt];
 
-      if (effectiveTool === 'laser') {
-        state.laserTrail.push({ x: pt.x, y: pt.y, t: performance.now() });
-        return;
-      }
-
-      if (effectiveTool === 'eraser') {
-        if (state.eraserType === 'stroke') {
-          eraseStrokeAtPoint(pt.x, pt.y);
-        } else {
-          activeStroke = {
-            tool: 'pixelEraser',
-            width: Math.max(28, state.penWidth * 5.0),
-            points: [{ x: pt.x, y: pt.y }]
-          };
-        }
-        return;
-      }
-
-      if (effectiveTool === 'pen' || effectiveTool === 'highlighter') {
-        activeStroke = {
-          tool: effectiveTool,
-          color: state.inkColor,
-          width: state.penWidth,
-          points: [{ x: pt.x, y: pt.y }]
-        };
-      } else if (effectiveTool === 'line') {
-        activeStroke = {
-          tool: 'line',
-          subShape: state.subShape,
-          color: state.inkColor,
-          width: state.penWidth,
-          p1: pt,
-          p2: pt
-        };
-      } else if (effectiveTool === 'shape') {
-        activeStroke = {
-          tool: 'shape',
-          subGeo: state.subGeo,
-          color: state.inkColor,
-          width: state.penWidth,
-          p1: pt,
-          p2: pt
-        };
+      if (currentTool === 'eraser' && eraserMode === 'stroke') {
+        eraseStrokeAtPoint(pt);
       }
     });
 
-    tempCanvas.addEventListener('pointermove', (e) => {
-      if (state.penOnly && e.pointerType === 'touch') return;
-      const pt = clientToStageCoords(e.clientX, e.clientY);
-      const effectiveTool = state.tool;
+    inkCanvas.addEventListener('pointermove', (e) => {
+      const pt = getBoardCoords(e);
 
-      if (effectiveTool === 'laser') {
-        state.laserPoint = pt;
-        if (isDrawing) {
-          state.laserTrail.push({ x: pt.x, y: pt.y, t: performance.now() });
-        }
-        return;
-      }
-
-      if (effectiveTool === 'select' && dragObjOffset && state.selectedObjIdx >= 0) {
-        const obj = currentSlide().objects[state.selectedObjIdx];
-        if (dragObjOffset.mode === 'move') {
-          obj.x = pt.x - dragObjOffset.dx;
-          obj.y = pt.y - dragObjOffset.dy;
-        } else {
-          obj.w = Math.max(60, pt.x - obj.x);
-          obj.h = Math.max(60, pt.y - obj.y);
-        }
-        renderBackgroundLayer(currentSlide(), bgCtx);
+      // If Laser tool is selected, show laser even on hover or drag
+      if (currentTool === 'laser') {
+        laserTrail.push({ x: pt.x, y: pt.y, t: performance.now() });
+        startLaserLoop();
         return;
       }
 
       if (!isDrawing) return;
+      const slide = slides[currentSlideIndex];
 
-      if (effectiveTool === 'eraser' && state.eraserType === 'stroke') {
-        eraseStrokeAtPoint(pt.x, pt.y);
-        return;
-      }
-
-      if (!activeStroke) return;
-
-      if (activeStroke.points) {
-        const lastPt = activeStroke.points[activeStroke.points.length - 1];
-        if (Math.hypot(pt.x - lastPt.x, pt.y - lastPt.y) >= 2.2) {
-          activeStroke.points.push({ x: pt.x, y: pt.y });
-        }
-        if (activeStroke.tool === 'pixelEraser') {
-          drawSingleStroke(inkCtx, activeStroke);
+      if (currentTool === 'pen' || currentTool === 'highlighter') {
+        currentPoints.push(pt);
+        tempCtx.clearRect(0, 0, BOARD_W, BOARD_H);
+        drawSingleStroke(tempCtx, {
+          type: currentTool,
+          color: penColor,
+          width: strokeWidth,
+          points: currentPoints
+        });
+      } else if (currentTool === 'eraser') {
+        if (eraserMode === 'stroke') {
+          eraseStrokeAtPoint(pt);
         } else {
-          tempCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-          drawSingleStroke(tempCtx, activeStroke);
+          currentPoints.push(pt);
+          // Live pixel erase preview directly on inkCanvas
+          drawSingleStroke(inkCtx, {
+            type: 'pixel-eraser',
+            width: strokeWidth,
+            points: currentPoints.slice(-3)
+          });
         }
-      } else {
-        activeStroke.p2 = pt;
-        tempCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-        drawSingleStroke(tempCtx, activeStroke);
+      } else if (currentTool === 'line') {
+        tempCtx.clearRect(0, 0, BOARD_W, BOARD_H);
+        drawSingleStroke(tempCtx, {
+          type: 'line',
+          subType: lineSubType,
+          color: penColor,
+          width: strokeWidth,
+          x1: startPt.x,
+          y1: startPt.y,
+          x2: pt.x,
+          y2: pt.y
+        });
+      } else if (currentTool === 'shape') {
+        tempCtx.clearRect(0, 0, BOARD_W, BOARD_H);
+        drawSingleStroke(tempCtx, {
+          type: 'shape',
+          subType: shapeSubType,
+          color: penColor,
+          width: strokeWidth,
+          x1: startPt.x,
+          y1: startPt.y,
+          x2: pt.x,
+          y2: pt.y
+        });
       }
     });
 
-    window.addEventListener('pointerup', () => {
-      dragObjOffset = null;
+    function finishPointerStroke(e) {
       if (!isDrawing) return;
       isDrawing = false;
+      tempCtx.clearRect(0, 0, BOARD_W, BOARD_H);
 
-      if (activeStroke) {
-        const sld = currentSlide();
-        sld.strokes.push(activeStroke);
-        sld.redoStack = [];
-        activeStroke = null;
-        tempCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-        renderInkLayer(sld, inkCtx);
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
+      if (currentTool === 'laser') return;
+
+      const slide = slides[currentSlideIndex];
+      const pt = e ? getBoardCoords(e) : currentPoints[currentPoints.length - 1];
+
+      if (currentTool === 'pen' || currentTool === 'highlighter') {
+        slide.strokes.push({
+          type: currentTool,
+          color: penColor,
+          width: strokeWidth,
+          points: currentPoints
+        });
+        slide.redoStack = [];
+      } else if (currentTool === 'eraser' && eraserMode === 'pixel') {
+        slide.strokes.push({
+          type: 'pixel-eraser',
+          width: strokeWidth,
+          points: currentPoints
+        });
+        slide.redoStack = [];
+      } else if (currentTool === 'line' && startPt && pt) {
+        if (Math.hypot(pt.x - startPt.x, pt.y - startPt.y) > 4) {
+          slide.strokes.push({
+            type: 'line',
+            subType: lineSubType,
+            color: penColor,
+            width: strokeWidth,
+            x1: startPt.x,
+            y1: startPt.y,
+            x2: pt.x,
+            y2: pt.y
+          });
+          slide.redoStack = [];
+        }
+      } else if (currentTool === 'shape' && startPt && pt) {
+        if (Math.hypot(pt.x - startPt.x, pt.y - startPt.y) > 4) {
+          slide.strokes.push({
+            type: 'shape',
+            subType: shapeSubType,
+            color: penColor,
+            width: strokeWidth,
+            x1: startPt.x,
+            y1: startPt.y,
+            x2: pt.x,
+            y2: pt.y
+          });
+          slide.redoStack = [];
+        }
       }
-    });
 
-    function eraseStrokeAtPoint(x, y) {
-      const sld = currentSlide();
-      if (!sld || !sld.strokes.length) return;
-      const threshold = 22;
+      renderAllInk(slide);
+      generateSlideThumbnail(currentSlideIndex);
+    }
 
-      for (let i = sld.strokes.length - 1; i >= 0; i--) {
-        const st = sld.strokes[i];
-        let hit = false;
+    inkCanvas.addEventListener('pointerup', finishPointerStroke);
+    inkCanvas.addEventListener('pointercancel', finishPointerStroke);
+
+    function eraseStrokeAtPoint(pt) {
+      const slide = slides[currentSlideIndex];
+      const threshold = Math.max(18, strokeWidth * 3.5);
+      const beforeCount = slide.strokes.length;
+
+      slide.strokes = slide.strokes.filter((st) => {
         if (st.points) {
-          hit = st.points.some(p => Math.hypot(p.x - x, p.y - y) < threshold);
-        } else if (st.p1 && st.p2) {
-          hit = distToSegment({ x, y }, st.p1, st.p2) < threshold;
-        } else if (st.tool === 'text') {
-          hit = (x >= st.x - 10 && x <= st.x + 280 && y >= st.y - 35 && y <= st.y + 35);
+          return !st.points.some(p => Math.hypot(p.x - pt.x, p.y - pt.y) < threshold);
+        } else if (st.x1 !== undefined) {
+          // Check distance to segment
+          return distToSegment(pt, { x: st.x1, y: st.y1 }, { x: st.x2, y: st.y2 }) >= threshold;
+        } else if (st.type === 'text') {
+          return Math.hypot(st.x - pt.x, st.y - pt.y) >= threshold * 2;
         }
-        if (hit) {
-          const removed = sld.strokes.splice(i, 1)[0];
-          sld.redoStack.push(removed);
-          renderInkLayer(sld, inkCtx);
-          updateSlideThumbnail(state.currentSlideIdx);
-          autoSaveSession();
-          break;
-        }
+        return true;
+      });
+
+      if (slide.strokes.length !== beforeCount) {
+        renderAllInk(slide);
+        generateSlideThumbnail(currentSlideIndex);
       }
     }
 
     function distToSegment(p, v, w) {
-      const l2 = Math.pow(v.x - w.x, 2) + Math.pow(v.y - w.y, 2);
+      const l2 = (w.x - v.x) ** 2 + (w.y - v.y) ** 2;
       if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
       let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
       t = Math.max(0, Math.min(1, t));
       return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
     }
 
-    function animateLaserOverlay() {
-      requestAnimationFrame(animateLaserOverlay);
-      if (state.tool !== 'laser' && state.laserTrail.length === 0) return;
+    // ==========================================
+    // 7. TOOLS, COLORS & PRESENT DOCK SYNC
+    // ==========================================
+    function setTool(toolName) {
+      currentTool = toolName;
+      document.querySelectorAll('[data-tool]').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-tool') === toolName);
+      });
+      // Sync Present Mode buttons
+      document.getElementById('presPenBtn').classList.toggle('active', toolName === 'pen');
+      document.getElementById('presEraserBtn').classList.toggle('active', toolName === 'eraser');
 
-      const now = performance.now();
-      state.laserTrail = state.laserTrail.filter(pt => now - pt.t < 550);
+      document.getElementById('statusToolLabel').textContent =
+        `Tool: ${toolName.toUpperCase()} | Shortcuts: Ctrl+A (Arrow), Ctrl+L (Line), E (Eraser), L (Laser)`;
 
-      tempCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-
-      if (state.laserTrail.length > 1) {
-        for (let i = 1; i < state.laserTrail.length; i++) {
-          const p0 = state.laserTrail[i - 1];
-          const p1 = state.laserTrail[i];
-          const alpha = Math.max(0, 1 - (now - p1.t) / 550);
-          tempCtx.save();
-          tempCtx.strokeStyle = `rgba(239, 68, 68, ${alpha})`;
-          tempCtx.lineWidth = 6 * alpha + 2;
-          tempCtx.lineCap = 'round';
-          tempCtx.beginPath();
-          tempCtx.moveTo(p0.x, p0.y);
-          ctx.lineTo(p1.x, p1.y);
-          tempCtx.stroke();
-          tempCtx.restore();
-        }
-      }
-
-      if (state.tool === 'laser' && state.laserPoint) {
-        const lp = state.laserPoint;
-        tempCtx.save();
-        if (state.laserHalo) {
-          tempCtx.fillStyle = 'rgba(239, 68, 68, 0.25)';
-          tempCtx.beginPath();
-          tempCtx.arc(lp.x, lp.y, 26, 0, Math.PI * 2);
-          tempCtx.fill();
-        }
-        tempCtx.fillStyle = '#ef4444';
-        tempCtx.shadowColor = '#ef4444';
-        tempCtx.shadowBlur = 16;
-        tempCtx.beginPath();
-        tempCtx.arc(lp.x, lp.y, 7.5, 0, Math.PI * 2);
-        tempCtx.fill();
-
-        tempCtx.fillStyle = '#ffffff';
-        tempCtx.beginPath();
-        tempCtx.arc(lp.x, lp.y, 3, 0, Math.PI * 2);
-        tempCtx.fill();
-        tempCtx.restore();
+      if (toolName === 'laser') {
+        startLaserLoop();
       }
     }
-    requestAnimationFrame(animateLaserOverlay);
 
-    // --- TEXT & EQUATION TOOL OVERLAY ---
-    let pendingTextCoords = { x: 200, y: 200 };
-    function openTextOverlayAt(x, y) {
-      pendingTextCoords = { x, y };
-      const box = document.getElementById('textOverlayBox');
-      box.style.left = `${(x / LOGICAL_W) * 100}%`;
-      box.style.top = `${(y / LOGICAL_H) * 100}%`;
-      box.style.display = 'block';
-      document.getElementById('textOverlayInput').focus();
+    function setPenColor(hex) {
+      penColor = hex;
+      document.getElementById('customColorPicker').value = hex;
+      document.getElementById('presCustomColor').value = hex;
+
+      document.querySelectorAll('.color-dot').forEach(dot => {
+        dot.classList.toggle('active', dot.getAttribute('data-color').toLowerCase() === hex.toLowerCase());
+      });
+
+      // Automatically switch to pen if user picks a color while on eraser/laser
+      if (currentTool === 'eraser' || currentTool === 'laser') {
+        setTool('pen');
+      }
     }
 
-    window.insertMathSym = function(sym) {
-      const inp = document.getElementById('textOverlayInput');
-      inp.focus();
-      document.execCommand('insertText', false, sym);
-    };
+    document.querySelectorAll('[data-tool]').forEach(btn => {
+      btn.addEventListener('click', () => setTool(btn.getAttribute('data-tool')));
+    });
 
-    window.commitTextOverlay = function() {
-      const inp = document.getElementById('textOverlayInput');
-      const txt = inp.innerText.trim();
-      if (txt) {
-        const sld = currentSlide();
-        sld.strokes.push({
-          tool: 'text',
-          text: txt,
-          x: pendingTextCoords.x,
-          y: pendingTextCoords.y + 28,
-          color: state.inkColor,
-          fontSize: Math.max(26, state.penWidth * 6.0)
+    document.querySelectorAll('.color-dot').forEach(dot => {
+      dot.addEventListener('click', () => setPenColor(dot.getAttribute('data-color')));
+    });
+
+    document.getElementById('customColorPicker').addEventListener('input', (e) => setPenColor(e.target.value));
+    document.getElementById('presCustomColor').addEventListener('input', (e) => setPenColor(e.target.value));
+
+    document.getElementById('strokeWidthSlider').addEventListener('input', (e) => {
+      strokeWidth = parseInt(e.target.value, 10);
+      document.getElementById('strokeWidthVal').textContent = strokeWidth + 'px';
+    });
+
+    document.getElementById('lineSubType').addEventListener('change', (e) => {
+      lineSubType = e.target.value;
+      setTool('line');
+    });
+
+    document.getElementById('shapeSubType').addEventListener('change', (e) => {
+      shapeSubType = e.target.value;
+      setTool('shape');
+    });
+
+    document.getElementById('eraserModeSelect').addEventListener('change', (e) => {
+      eraserMode = e.target.value;
+      setTool('eraser');
+    });
+
+    // Board BG & Grid memory
+    document.getElementById('boardBgSelect').addEventListener('change', (e) => {
+      defaultBgColor = e.target.value;
+      localStorage.setItem('physix_default_bg', defaultBgColor);
+      slides[currentSlideIndex].bgColor = defaultBgColor;
+      renderCurrentSlide();
+    });
+
+    document.getElementById('boardGridSelect').addEventListener('change', (e) => {
+      defaultGridType = e.target.value;
+      localStorage.setItem('physix_default_grid', defaultGridType);
+      slides[currentSlideIndex].gridType = defaultGridType;
+      renderCurrentSlide();
+    });
+
+    // Undo / Redo / Clear
+    function undoStroke() {
+      const slide = slides[currentSlideIndex];
+      if (slide.strokes.length > 0) {
+        slide.redoStack.push(slide.strokes.pop());
+        renderAllInk(slide);
+        generateSlideThumbnail(currentSlideIndex);
+      }
+    }
+
+    function redoStroke() {
+      const slide = slides[currentSlideIndex];
+      if (slide.redoStack && slide.redoStack.length > 0) {
+        slide.strokes.push(slide.redoStack.pop());
+        renderAllInk(slide);
+        generateSlideThumbnail(currentSlideIndex);
+      }
+    }
+
+    function clearCurrentSlideInk() {
+      const slide = slides[currentSlideIndex];
+      if (slide.strokes.length === 0) return;
+      slide.strokes = [];
+      slide.redoStack = [];
+      renderAllInk(slide);
+      generateSlideThumbnail(currentSlideIndex);
+    }
+
+    document.getElementById('undoBtn').addEventListener('click', undoStroke);
+    document.getElementById('redoBtn').addEventListener('click', redoStroke);
+    document.getElementById('clearSlideInkBtn').addEventListener('click', clearCurrentSlideInk);
+
+    // ==========================================
+    // 8. SLIDE THUMBNAILS & NAVIGATION
+    // ==========================================
+    function generateSlideThumbnail(index) {
+      const slide = slides[index];
+      if (!slide) return;
+
+      const off = document.createElement('canvas');
+      off.width = 320;
+      off.height = 180;
+      const octx = off.getContext('2d');
+
+      // Draw current live canvases if generating for current slide
+      if (index === currentSlideIndex) {
+        octx.drawImage(bgCanvas, 0, 0, 320, 180);
+        octx.drawImage(inkCanvas, 0, 0, 320, 180);
+        slide.thumbUrl = off.toDataURL('image/jpeg', 0.7);
+        updateThumbCardImage(index, slide.thumbUrl);
+      }
+    }
+
+    function updateThumbCardImage(index, dataUrl) {
+      const imgEl = document.querySelector(`#slidesListContainer .slide-thumb-card[data-idx="${index}"] img`);
+      if (imgEl && dataUrl) imgEl.src = dataUrl;
+    }
+
+    function updateThumbnailsUI() {
+      const container = document.getElementById('slidesListContainer');
+      container.innerHTML = '';
+
+      slides.forEach((slide, idx) => {
+        const card = document.createElement('div');
+        card.className = 'slide-thumb-card' + (idx === currentSlideIndex ? ' active' : '');
+        card.setAttribute('data-idx', idx);
+
+        const img = document.createElement('img');
+        img.src = slide.thumbUrl || '';
+        card.appendChild(img);
+
+        const delBtn = document.createElement('button');
+        delBtn.className = 'slide-del-btn';
+        delBtn.textContent = '✕';
+        delBtn.title = 'Delete this slide';
+        delBtn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          deleteSlideAt(idx);
         });
-        renderInkLayer(sld, inkCtx);
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
+        card.appendChild(delBtn);
+
+        const meta = document.createElement('div');
+        meta.className = 'slide-thumb-meta';
+        meta.innerHTML = `<span>#${idx + 1}</span><span>Board ${idx + 1}</span>`;
+        card.appendChild(meta);
+
+        card.addEventListener('click', () => switchToSlide(idx));
+        container.appendChild(card);
+      });
+
+      updateSlideIndicators();
+    }
+
+    function switchToSlide(idx) {
+      if (idx < 0 || idx >= slides.length) return;
+      currentSlideIndex = idx;
+      renderCurrentSlide();
+      updateThumbnailsUI();
+    }
+
+    function addBlankSlideAfterCurrent() {
+      const newSlide = createBlankSlide();
+      slides.splice(currentSlideIndex + 1, 0, newSlide);
+      switchToSlide(currentSlideIndex + 1);
+    }
+
+    function deleteSlideAt(idx) {
+      if (slides.length === 1) {
+        // If deleting the very last remaining slide, reset it cleanly AND reset deck name if desired
+        slides[0] = createBlankSlide();
+        currentSlideIndex = 0;
+        renderCurrentSlide();
+        updateThumbnailsUI();
+        return;
       }
-      document.getElementById('textOverlayBox').style.display = 'none';
-    };
+      slides.splice(idx, 1);
+      if (currentSlideIndex >= slides.length) {
+        currentSlideIndex = slides.length - 1;
+      }
+      renderCurrentSlide();
+      updateThumbnailsUI();
+    }
 
-    window.cancelTextOverlay = function() {
-      document.getElementById('textOverlayBox').style.display = 'none';
-    };
+    document.getElementById('addBlankSlideTopBtn').addEventListener('click', addBlankSlideAfterCurrent);
+    document.getElementById('sideAddBlankBtn').addEventListener('click', addBlankSlideAfterCurrent);
+    document.getElementById('deleteCurrentSlideBtn').addEventListener('click', () => deleteSlideAt(currentSlideIndex));
 
-    // --- ULTRA-HD FILE IMPORT ENGINE ---
-    const fileInput = document.getElementById('fileImportInput');
-    fileInput.addEventListener('change', async (e) => {
-      if (e.target.files && e.target.files.length) {
-        await handleImportedFiles(Array.from(e.target.files));
-        fileInput.value = '';
+    document.getElementById('sideDupSlideBtn').addEventListener('click', () => {
+      const copy = JSON.parse(JSON.stringify(slides[currentSlideIndex]));
+      copy.id = 'slide_' + Date.now();
+      slides.splice(currentSlideIndex + 1, 0, copy);
+      switchToSlide(currentSlideIndex + 1);
+    });
+
+    document.getElementById('sideMoveUpBtn').addEventListener('click', () => {
+      if (currentSlideIndex > 0) {
+        const tmp = slides[currentSlideIndex - 1];
+        slides[currentSlideIndex - 1] = slides[currentSlideIndex];
+        slides[currentSlideIndex] = tmp;
+        switchToSlide(currentSlideIndex - 1);
       }
     });
 
-    window.addEventListener('dragover', e => e.preventDefault());
-    window.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      if (e.dataTransfer.files && e.dataTransfer.files.length) {
-        await handleImportedFiles(Array.from(e.dataTransfer.files));
+    document.getElementById('sideMoveDownBtn').addEventListener('click', () => {
+      if (currentSlideIndex < slides.length - 1) {
+        const tmp = slides[currentSlideIndex + 1];
+        slides[currentSlideIndex + 1] = slides[currentSlideIndex];
+        slides[currentSlideIndex] = tmp;
+        switchToSlide(currentSlideIndex + 1);
       }
     });
 
-    async function handleImportedFiles(files) {
-      for (const file of files) {
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (ext === 'pdf') {
-          await importPDFDocument(file);
-        } else if (ext === 'pptx') {
-          await importPPTXPresentation(file);
-        } else if (ext === 'ppt') {
-          alert('Legacy binary .PPT detected: Please save as .PPTX or .PDF in PowerPoint for Ultra-HD rendering.');
-        } else if (['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
-          await importImageAsSlide(file);
-        } else if (ext === 'json' || ext === 'physboard') {
-          await importProjectJSON(file);
-        }
+    document.getElementById('prevSlideBtn').addEventListener('click', () => switchToSlide(currentSlideIndex - 1));
+    document.getElementById('nextSlideBtn').addEventListener('click', () => switchToSlide(currentSlideIndex + 1));
+
+    // Sidebar Collapse
+    const sidebarPanel = document.getElementById('sidebarPanel');
+    function toggleSidebar() {
+      sidebarPanel.classList.toggle('collapsed');
+      setTimeout(updateViewportLayout, 220);
+    }
+    document.getElementById('toggleSidebarBtn').addEventListener('click', toggleSidebar);
+    document.getElementById('collapseSidebarInnerBtn').addEventListener('click', toggleSidebar);
+
+    // Zoom Controls
+    document.getElementById('zoomInBtn').addEventListener('click', () => {
+      zoomMode = 'manual';
+      manualZoom = Math.min(2.5, manualZoom + 0.12);
+      updateViewportLayout();
+    });
+    document.getElementById('zoomOutBtn').addEventListener('click', () => {
+      zoomMode = 'manual';
+      manualZoom = Math.max(0.25, manualZoom - 0.12);
+      updateViewportLayout();
+    });
+    document.getElementById('zoomFitBtn').addEventListener('click', () => {
+      zoomMode = 'fit';
+      updateViewportLayout();
+    });
+
+    // ==========================================
+    // 9. PRESENT MODE (FULL-SCREEN + PEN COLORS)
+    // ==========================================
+    function enterPresentMode() {
+      document.body.classList.add('present-mode');
+      if (document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
       }
-      renderCurrentSlideAll();
-      rebuildThumbnails();
+      setTimeout(updateViewportLayout, 100);
     }
 
-    async function importPDFDocument(file) {
-      const arrayBuf = await file.arrayBuffer();
-      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuf }).promise;
-      const newSlides = [];
-
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const vp = page.getViewport({ scale: 3.0 });
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width = vp.width;
-        offCanvas.height = vp.height;
-        const offCtx = offCanvas.getContext('2d');
-        offCtx.imageSmoothingEnabled = true;
-        offCtx.imageSmoothingQuality = 'high';
-        await page.render({ canvasContext: offCtx, viewport: vp }).promise;
-
-        newSlides.push(createSlide({
-          type: 'pdf',
-          title: `${file.name.replace(/\.pdf$/i, '')} - P${pageNum}`,
-          bgColor: '#ffffff',
-          gridPattern: 'none',
-          sourceDataUrl: offCanvas.toDataURL('image/png')
-        }));
+    function exitPresentMode() {
+      document.body.classList.remove('present-mode');
+      if (document.fullscreenElement && document.exitFullscreen) {
+        document.exitFullscreen().catch(() => {});
       }
-
-      if (newSlides.length > 0) {
-        if (state.slides.length === 1 && state.slides[0].strokes.length === 0 && state.slides[0].type === 'blank') {
-          state.slides = newSlides;
-          state.currentSlideIdx = 0;
-          document.getElementById('inpLessonName').value = file.name.replace(/\.pdf$/i, '');
-        } else {
-          state.slides.push(...newSlides);
-          state.currentSlideIdx = state.slides.length - newSlides.length;
-        }
-        syncActiveDeckRecord();
-      }
+      setTimeout(updateViewportLayout, 100);
     }
 
-    async function importPPTXPresentation(file) {
+    document.getElementById('enterPresentBtn').addEventListener('click', enterPresentMode);
+    document.getElementById('exitPresentBtn').addEventListener('click', exitPresentMode);
+    document.getElementById('presPrevBtn').addEventListener('click', () => switchToSlide(currentSlideIndex - 1));
+    document.getElementById('presNextBtn').addEventListener('click', () => switchToSlide(currentSlideIndex + 1));
+    document.getElementById('presNewSlideBtn').addEventListener('click', addBlankSlideAfterCurrent);
+    document.getElementById('presPenBtn').addEventListener('click', () => setTool('pen'));
+    document.getElementById('presEraserBtn').addEventListener('click', () => setTool('eraser'));
+    document.getElementById('presUndoBtn').addEventListener('click', undoStroke);
+    document.getElementById('presClearBtn').addEventListener('click', clearCurrentSlideInk);
+
+    // ==========================================
+    // 10. OPTIMIZED LIGHTWEIGHT PDF & PNG EXPORT
+    // ==========================================
+    // Helper to render any slide onto an offscreen canvas for fast JPEG compression
+    async function renderSlideToOffscreenCanvas(slide, includeInk = true) {
+      const off = document.createElement('canvas');
+      off.width = BOARD_W;
+      off.height = BOARD_H;
+      const ctx = off.getContext('2d');
+
+      drawBackgroundAndGrid(ctx, slide, BOARD_W, BOARD_H);
+
+      if (slide.bgImage) {
+        await new Promise((res) => {
+          const img = new Image();
+          img.onload = () => {
+            drawContainedImage(ctx, img, BOARD_W, BOARD_H);
+            res();
+          };
+          img.onerror = () => res();
+          img.src = slide.bgImage;
+        });
+      }
+
+      if (includeInk && slide.strokes && slide.strokes.length > 0) {
+        // Draw ink on separate layer so pixel-eraser only erases ink, not background!
+        const inkOff = document.createElement('canvas');
+        inkOff.width = BOARD_W;
+        inkOff.height = BOARD_H;
+        const iCtx = inkOff.getContext('2d');
+        for (const st of slide.strokes) {
+          drawSingleStroke(iCtx, st);
+        }
+        ctx.drawImage(inkOff, 0, 0);
+      }
+
+      return off;
+    }
+
+    function getCleanFilenamePrompt(defaultSuffix = '') {
+      const suggested = (modalDeckNameInput.value || activeDeckNameInput.value || 'Physics_Lesson').trim();
+      const chosen = prompt('Confirm or enter new file name for download:', suggested);
+      if (chosen === null) return null; // User cancelled
+      const finalName = chosen.trim() || 'Physics_Lesson';
+      currentDeckName = finalName;
+      activeDeckNameInput.value = finalName;
+      modalDeckNameInput.value = finalName;
+      return finalName + defaultSuffix;
+    }
+
+    function triggerBlobDownload(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 1500);
+    }
+
+    // Export Current Slide PNG
+    document.getElementById('exportCurrentPngBtn').addEventListener('click', async () => {
+      const fname = getCleanFilenamePrompt(`_Slide_${currentSlideIndex + 1}.png`);
+      if (!fname) return;
+      exportStatusMsg.textContent = '⏳ Rendering crisp Full-HD Slide PNG...';
+      const off = await renderSlideToOffscreenCanvas(slides[currentSlideIndex], true);
+      off.toBlob((blob) => {
+        triggerBlobDownload(blob, fname);
+        exportStatusMsg.textContent = `✓ Downloaded ${fname} successfully! Ready for next download.`;
+      }, 'image/png');
+    });
+
+    // Export Annotated OR Clean PDF (Optimized JPEG 0.88 quality -> ~2-4MB instead of 124MB!)
+    async function exportDeckAsOptimizedPDF(includeInk = true) {
+      const suffix = includeInk ? '_Annotated.pdf' : '_Clean_Slides.pdf';
+      const fname = getCleanFilenamePrompt(suffix);
+      if (!fname) return;
+
+      const btn = includeInk
+        ? document.getElementById('exportAnnotatedPdfBtn')
+        : document.getElementById('exportCleanPdfBtn');
+
       try {
-        const zip = await window.JSZip.loadAsync(file);
-        const slideFiles = Object.keys(zip.files)
-          .filter(k => /^ppt\/slides\/slide\d+\.xml$/.test(k))
-          .sort((a, b) => {
-            const na = parseInt(a.match(/slide(\d+)\.xml/)[1], 10);
-            const nb = parseInt(b.match(/slide(\d+)\.xml/)[1], 10);
-            return na - nb;
-          });
-
-        if (slideFiles.length === 0) {
-          alert('No slides found inside PPTX archive.');
-          return;
-        }
-
-        const newSlides = [];
-        for (let idx = 0; idx < slideFiles.length; idx++) {
-          const slidePath = slideFiles[idx];
-          const slideNum = idx + 1;
-          const xmlStr = await zip.file(slidePath).async('string');
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
-
-          const relPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
-          const relMap = {};
-          if (zip.file(relPath)) {
-            const relXml = await zip.file(relPath).async('string');
-            const relDoc = parser.parseFromString(relXml, 'application/xml');
-            const relNodes = relDoc.getElementsByTagName('Relationship');
-            for (const rNode of relNodes) {
-              const id = rNode.getAttribute('Id');
-              const target = rNode.getAttribute('Target');
-              if (id && target) relMap[id] = target.replace('../', 'ppt/');
-            }
-          }
-
-          const elements = [];
-          const blipNodes = xmlDoc.getElementsByTagName('a:blip');
-          for (const blip of blipNodes) {
-            const embedId = blip.getAttribute('r:embed');
-            const mediaPath = relMap[embedId];
-            if (mediaPath && zip.file(mediaPath)) {
-              const base64 = await zip.file(mediaPath).async('base64');
-              const ext = mediaPath.split('.').pop().toLowerCase();
-              const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
-              elements.push({
-                kind: 'image',
-                dataUrl: `data:${mime};base64,${base64}`,
-                x: 1050,
-                y: 180,
-                w: 760,
-                h: 560
-              });
-            }
-          }
-
-          const pNodes = xmlDoc.getElementsByTagName('a:p');
-          let textY = 130;
-          let isTitle = true;
-          for (const pNode of pNodes) {
-            const tNodes = pNode.getElementsByTagName('a:t');
-            let paraText = '';
-            for (const tNode of tNodes) {
-              paraText += tNode.textContent;
-            }
-            paraText = paraText.trim();
-            if (paraText) {
-              elements.push({
-                kind: 'text',
-                text: isTitle ? paraText : '• ' + paraText,
-                x: 120,
-                y: textY,
-                w: elements.some(e => e.kind === 'image') ? 880 : 1680,
-                fontSize: isTitle ? 48 : 32,
-                bold: isTitle,
-                color: isTitle ? '#0f172a' : '#334155'
-              });
-              textY += isTitle ? 85 : 58;
-              isTitle = false;
-            }
-          }
-
-          newSlides.push(createSlide({
-            type: 'pptx',
-            title: `PPTX Slide ${slideNum}`,
-            bgColor: '#ffffff',
-            gridPattern: 'none',
-            pptxElements: elements
-          }));
-        }
-
-        state.slides.push(...newSlides);
-        state.currentSlideIdx = state.slides.length - newSlides.length;
-        syncActiveDeckRecord();
-      } catch (err) {
-        alert('Error reading PPTX file: ' + err.message);
-      }
-    }
-
-    async function importImageAsSlide(file) {
-      const dataUrl = await readFileAsDataURL(file);
-      state.slides.push(createSlide({
-        type: 'image',
-        title: file.name,
-        bgColor: state.defaultBgColor,
-        gridPattern: 'none',
-        sourceDataUrl: dataUrl
-      }));
-      state.currentSlideIdx = state.slides.length - 1;
-      syncActiveDeckRecord();
-    }
-
-    document.getElementById('imgObjectInput').addEventListener('change', async (e) => {
-      if (e.target.files && e.target.files[0]) {
-        const dataUrl = await readFileAsDataURL(e.target.files[0]);
-        const sld = currentSlide();
-        sld.objects.push({
-          dataUrl,
-          x: 520,
-          y: 260,
-          w: 640,
-          h: 440
+        btn.disabled = true;
+        const { jsPDF } = window.jspdf;
+        // 1920x1080 in pt/px landscape
+        const pdf = new jsPDF({
+          orientation: 'landscape',
+          unit: 'px',
+          format: [BOARD_W, BOARD_H],
+          compress: true
         });
-        selectTool('select');
-        state.selectedObjIdx = sld.objects.length - 1;
-        renderCurrentSlideAll();
+
+        for (let i = 0; i < slides.length; i++) {
+          exportStatusMsg.textContent = `⏳ Optimizing Slide ${i + 1} of ${slides.length} (High-Definition Fast JPEG)...`;
+          // Yield to UI thread so progress updates smoothly
+          await new Promise(r => setTimeout(r, 15));
+
+          const off = await renderSlideToOffscreenCanvas(slides[i], includeInk);
+          // 0.88 JPEG quality preserves razor-sharp handwriting while cutting size by 95%
+          const imgData = off.toDataURL('image/jpeg', 0.88);
+
+          if (i > 0) pdf.addPage([BOARD_W, BOARD_H], 'landscape');
+          pdf.addImage(imgData, 'JPEG', 0, 0, BOARD_W, BOARD_H, undefined, 'FAST');
+        }
+
+        const pdfBlob = pdf.output('blob');
+        const sizeMB = (pdfBlob.size / (1024 * 1024)).toFixed(2);
+        triggerBlobDownload(pdfBlob, fname);
+        exportStatusMsg.textContent = `✓ Exported ${fname} (${sizeMB} MB)! You can download again anytime.`;
+      } catch (err) {
+        console.error(err);
+        exportStatusMsg.textContent = '❌ Export error: ' + err.message;
+      } finally {
+        btn.disabled = false;
       }
+    }
+
+    document.getElementById('exportAnnotatedPdfBtn').addEventListener('click', () => exportDeckAsOptimizedPDF(true));
+    document.getElementById('exportCleanPdfBtn').addEventListener('click', () => exportDeckAsOptimizedPDF(false));
+
+    // Download .physboard JSON
+    document.getElementById('downloadJsonDeckBtn').addEventListener('click', () => {
+      const fname = getCleanFilenamePrompt('.physboard');
+      if (!fname) return;
+      const payload = JSON.stringify({
+        id: currentDeckId,
+        name: currentDeckName,
+        exportedAt: new Date().toISOString(),
+        slides
+      });
+      const blob = new Blob([payload], { type: 'application/json' });
+      triggerBlobDownload(blob, fname);
+      exportStatusMsg.textContent = `✓ Downloaded ${fname} deck file!`;
+    });
+
+    // Save Deck to Browser IndexedDB
+    document.getElementById('saveDeckToDbBtn').addEventListener('click', async () => {
+      const chosen = getCleanFilenamePrompt('');
+      if (!chosen) return;
+      // Create a new deck ID if user changed the name so it doesn't overwrite an older differently named deck
+      currentDeckId = 'deck_' + chosen.toLowerCase().replace(/[^a-z0-9]/g, '_') + '_' + Date.now();
+      await saveCurrentDeckToDB(chosen);
+      exportStatusMsg.textContent = `✓ Saved "${chosen}" to Browser Library at ${new Date().toLocaleTimeString()}`;
+    });
+
+    // Complete Reset / Delete Current Lesson (Fixes Issue #3)
+    document.getElementById('resetDeckCompletelyBtn').addEventListener('click', async () => {
+      if (!confirm('Delete current lesson slides and reset file name to a fresh "Untitled Lesson"?')) return;
+      await deleteDeckFromDB(currentDeckId);
+      resetToBrandNewDeck('Untitled Lesson');
+      exportStatusMsg.textContent = '✓ Current deck deleted & reset to fresh "Untitled Lesson"!';
+    });
+
+    document.getElementById('newFreshDeckBtn').addEventListener('click', () => {
+      const name = prompt('Enter name for your new clean deck:', 'Untitled Lesson');
+      if (name === null) return;
+      resetToBrandNewDeck(name.trim() || 'Untitled Lesson');
+    });
+
+    // ==========================================
+    // 11. IMPORT PDF (SCALE 3.0), PPTX & IMAGES
+    // ==========================================
+    document.getElementById('fileImportInput').addEventListener('change', async (e) => {
+      const files = Array.from(e.target.files || []);
+      if (files.length === 0) return;
+
+      for (const file of files) {
+        const baseName = file.name.replace(/\.[^/.]+$/, '');
+        currentDeckId = 'deck_' + Date.now();
+        currentDeckName = baseName;
+        activeDeckNameInput.value = baseName;
+        modalDeckNameInput.value = baseName;
+
+        const ext = file.name.split('.').pop().toLowerCase();
+
+        if (ext === 'pdf') {
+          await importPdfFile(file);
+        } else if (ext === 'pptx') {
+          await importPptxFile(file);
+        } else if (ext === 'physboard') {
+          const text = await file.text();
+          const data = JSON.parse(text);
+          if (data.slides && data.slides.length) {
+            slides = data.slides;
+            currentDeckName = data.name || baseName;
+            activeDeckNameInput.value = currentDeckName;
+            modalDeckNameInput.value = currentDeckName;
+            currentSlideIndex = 0;
+            await renderCurrentSlide();
+            updateThumbnailsUI();
+          }
+        } else if (['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
+          const dataUrl = await readFileAsDataURL(file);
+          const sl = createBlankSlide();
+          sl.bgImage = dataUrl;
+          sl.thumbUrl = dataUrl;
+          if (slides.length === 1 && slides[0].strokes.length === 0 && !slides[0].bgImage) {
+            slides[0] = sl;
+            currentSlideIndex = 0;
+          } else {
+            slides.push(sl);
+            currentSlideIndex = slides.length - 1;
+          }
+          await renderCurrentSlide();
+          updateThumbnailsUI();
+        }
+      }
+
+      e.target.value = '';
     });
 
     function readFileAsDataURL(file) {
-      return new Promise((resolve) => {
+      return new Promise((res) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
+        reader.onload = () => res(reader.result);
         reader.readAsDataURL(file);
       });
     }
 
-    // --- SLIDE MANAGEMENT & THUMBNAILS ---
-    function updateSlideThumbnail(idx) {
-      const sld = state.slides[idx];
-      if (!sld) return;
-      const off = document.createElement('canvas');
-      off.width = 320;
-      off.height = 180;
-      const oCtx = off.getContext('2d');
-      oCtx.drawImage(bgCanvas, 0, 0, 320, 180);
-      oCtx.drawImage(inkCanvas, 0, 0, 320, 180);
-      sld.thumbUrl = off.toDataURL('image/jpeg', 0.8);
+    async function importPdfFile(file) {
+      const arrayBuf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuf }).promise;
+      const importedSlides = [];
 
-      const imgEl = document.getElementById(`thumb-img-${idx}`);
-      if (imgEl) imgEl.src = sld.thumbUrl;
-    }
-
-    function rebuildThumbnails() {
-      const list = document.getElementById('thumbList');
-      list.innerHTML = '';
-      document.getElementById('lblTotalSlides').textContent = state.slides.length;
-
-      state.slides.forEach((sld, idx) => {
-        const card = document.createElement('div');
-        card.className = `thumb-card ${idx === state.currentSlideIdx ? 'active' : ''}`;
-        card.draggable = true;
-        card.onclick = () => goToSlide(idx);
-
-        card.ondragstart = (ev) => ev.dataTransfer.setData('text/plain', idx);
-        card.ondragover = (ev) => ev.preventDefault();
-        card.ondrop = (ev) => {
-          ev.preventDefault();
-          const fromIdx = parseInt(ev.dataTransfer.getData('text/plain'), 10);
-          if (!isNaN(fromIdx) && fromIdx !== idx) {
-            const moved = state.slides.splice(fromIdx, 1)[0];
-            state.slides.splice(idx, 0, moved);
-            state.currentSlideIdx = idx;
-            rebuildThumbnails();
-            renderCurrentSlideAll();
-          }
-        };
-
-        card.innerHTML = `
-          <button class="thumb-del-btn" title="Delete Slide #${idx + 1} (${sld.title})" onclick="event.stopPropagation(); deleteSlideByIndex(${idx});">✕</button>
-          <div class="thumb-preview">
-            ${sld.thumbUrl ? `<img id="thumb-img-${idx}" src="${sld.thumbUrl}" />` : `<span style="font-size:0.7rem; color:#94a3b8;">${sld.title}</span>`}
-          </div>
-          <div class="thumb-meta">
-            <span>#${idx + 1}</span>
-            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:125px;">${sld.title}</span>
-          </div>
-        `;
-        list.appendChild(card);
-      });
-    }
-
-    window.deleteSlideByIndex = function(idx) {
-      if (idx < 0 || idx >= state.slides.length) return;
-      if (state.slides.length === 1) {
-        state.slides[0] = createSlide({
-          type: 'blank',
-          title: 'Board 1'
-        });
-        state.currentSlideIdx = 0;
-      } else {
-        state.slides.splice(idx, 1);
-        if (state.currentSlideIdx >= state.slides.length) {
-          state.currentSlideIdx = state.slides.length - 1;
-        }
-      }
-      renderCurrentSlideAll();
-      rebuildThumbnails();
-    };
-
-    window.goToSlide = function(idx) {
-      if (idx < 0 || idx >= state.slides.length) return;
-      state.currentSlideIdx = idx;
-      state.selectedObjIdx = -1;
-      renderCurrentSlideAll();
-      rebuildThumbnails();
-    };
-
-    // UPDATED: Every new Blank Slide automatically uses your Global Default BG & Grid!
-    window.addBlankSlideAt = function(targetIdx) {
-      const newSld = createSlide({
-        type: 'blank',
-        title: `Board ${state.slides.length + 1}`,
-        bgColor: state.defaultBgColor,
-        gridPattern: state.defaultGridPattern
-      });
-      state.slides.splice(targetIdx, 0, newSld);
-      goToSlide(targetIdx);
-    };
-
-    window.insertQuickBlankBoard = function() {
-      state.returnSlideIdx = state.currentSlideIdx;
-      document.getElementById('btnReturnSlide').style.display = 'inline-flex';
-      addBlankSlideAt(state.currentSlideIdx + 1);
-    };
-
-    window.returnFromBlankBoard = function() {
-      if (state.returnSlideIdx !== null && state.returnSlideIdx < state.slides.length) {
-        goToSlide(state.returnSlideIdx);
-      }
-      state.returnSlideIdx = null;
-      document.getElementById('btnReturnSlide').style.display = 'none';
-    };
-
-    window.duplicateCurrentSlide = function() {
-      const copy = JSON.parse(JSON.stringify(currentSlide()));
-      copy.id = 'sld_' + Date.now();
-      copy.title += ' (Copy)';
-      state.slides.splice(state.currentSlideIdx + 1, 0, copy);
-      goToSlide(state.currentSlideIdx + 1);
-    };
-
-    window.moveSlideOrder = function(dir) {
-      const from = state.currentSlideIdx;
-      const to = from + dir;
-      if (to < 0 || to >= state.slides.length) return;
-      const item = state.slides.splice(from, 1)[0];
-      state.slides.splice(to, 0, item);
-      goToSlide(to);
-    };
-
-    // --- TOOLBAR & GLOBAL BOARD BG MEMORY ---
-    window.selectTool = function(t) {
-      state.tool = t;
-      ['select', 'pen', 'highlighter', 'eraser', 'laser', 'line', 'shape', 'text'].forEach(id => {
-        const el = document.getElementById('tool-' + id);
-        if (el) el.classList.toggle('active', id === t);
-      });
-      tempCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-      document.getElementById('stylusTelemetry').textContent = `Tool: ${t.toUpperCase()} | Ready`;
-    };
-
-    window.setInkColor = function(hex, swatchEl) {
-      state.inkColor = hex;
-      document.querySelectorAll('.swatch').forEach(s => s.classList.remove('active'));
-      if (swatchEl) swatchEl.classList.add('active');
-      if (state.tool === 'eraser' || state.tool === 'select') selectTool('pen');
-    };
-
-    window.setPenWidth = function(w, btnEl) {
-      state.penWidth = w;
-      document.getElementById('slPenWidth').value = w;
-      if (btnEl) {
-        document.querySelectorAll('.width-dot-btn').forEach(b => b.classList.remove('active'));
-        btnEl.classList.add('active');
-      }
-    };
-
-    window.undoStroke = function() {
-      const sld = currentSlide();
-      if (sld && sld.strokes.length > 0) {
-        sld.redoStack.push(sld.strokes.pop());
-        renderInkLayer(sld, inkCtx);
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
-      }
-    };
-
-    window.redoStroke = function() {
-      const sld = currentSlide();
-      if (sld && sld.redoStack.length > 0) {
-        sld.strokes.push(sld.redoStack.pop());
-        renderInkLayer(sld, inkCtx);
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
-      }
-    };
-
-    window.confirmClearSlide = function() {
-      const sld = currentSlide();
-      if (!sld || sld.strokes.length === 0) return;
-      if (confirm('Clear all handwritten annotations on this slide?')) {
-        sld.strokes = [];
-        sld.redoStack = [];
-        renderInkLayer(sld, inkCtx);
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
-      }
-    };
-
-    window.cycleSidebarMode = function() {
-      const sb = document.getElementById('slideSidebar');
-      if (state.sidebarMode === 'full') {
-        state.sidebarMode = 'strip';
-        sb.className = 'slide-sidebar strip-mode';
-      } else if (state.sidebarMode === 'strip') {
-        state.sidebarMode = 'hidden';
-        sb.className = 'slide-sidebar hidden-mode';
-      } else {
-        state.sidebarMode = 'full';
-        sb.className = 'slide-sidebar';
-      }
-      setTimeout(fitBoardToScreen, 220);
-    };
-
-    window.setBoardMode = function(mode) {
-      state.boardMode = mode;
-      document.body.className = `mode-${mode}`;
-      document.getElementById('mode-prep').classList.toggle('active', mode === 'prep');
-      document.getElementById('mode-teaching').classList.toggle('active', mode === 'teaching');
-      document.getElementById('mode-pres').classList.toggle('active', mode === 'presentation');
-
-      if (mode === 'presentation' && document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else if (mode !== 'presentation' && document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
-      }
-      setTimeout(fitBoardToScreen, 120);
-    };
-
-    window.togglePhysicsToolkit = function() {
-      const bar = document.getElementById('physicsKitCluster');
-      const visible = bar.style.display !== 'none';
-      bar.style.display = visible ? 'none' : 'flex';
-      document.getElementById('btnPhysBar').classList.toggle('active', !visible);
-    };
-
-    window.toggleUiTheme = function() {
-      const root = document.documentElement;
-      const cur = root.getAttribute('data-ui-theme');
-      root.setAttribute('data-ui-theme', cur === 'dark' ? 'light' : 'dark');
-    };
-
-    function syncBgModalHighlights() {
-      const sld = currentSlide();
-      if (!sld) return;
-
-      document.querySelectorAll('.bg-choice-btn').forEach(btn => {
-        const isMatch = (sld.bgColor || '').toLowerCase() === btn.dataset.bg.toLowerCase();
-        btn.classList.toggle('selected-choice', isMatch);
-        const baseLabel = btn.textContent.replace(/^✓\s*/, '');
-        btn.textContent = isMatch ? `✓ ${baseLabel}` : baseLabel;
-      });
-
-      document.querySelectorAll('.grid-choice-btn').forEach(btn => {
-        const isMatch = (sld.gridPattern || 'none') === btn.dataset.grid;
-        btn.classList.toggle('selected-choice', isMatch);
-        const baseLabel = btn.textContent.replace(/^✓\s*/, '');
-        btn.textContent = isMatch ? `✓ ${baseLabel}` : baseLabel;
-      });
-    }
-
-    // UPDATED: Saves chosen BG & Grid as Global Default and applies across all Blank Boards!
-    window.setSlideBg = async function(color, pattern) {
-      const sld = currentSlide();
-      if (!sld) return;
-      const applyAllBlank = document.getElementById('chkApplyAllBlank')?.checked ?? true;
-
-      if (color) {
-        state.defaultBgColor = color;
-        localStorage.setItem('physix_default_bg', color);
-        sld.bgColor = color;
-        if (sld.type !== 'blank') sld.overrideBg = true;
-
-        if (applyAllBlank) {
-          state.slides.forEach(s => {
-            if (s.type === 'blank') s.bgColor = color;
-          });
-        }
-      }
-
-      if (pattern) {
-        state.defaultGridPattern = pattern;
-        localStorage.setItem('physix_default_grid', pattern);
-        sld.gridPattern = pattern;
-
-        if (applyAllBlank) {
-          state.slides.forEach(s => {
-            if (s.type === 'blank') s.gridPattern = pattern;
-          });
-        }
-      }
-
-      await renderCurrentSlideAll();
-
-      // Update thumbnails of all blank slides so the sidebar immediately shows the new background too!
-      if (applyAllBlank) {
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        document.getElementById('statusToolLabel').textContent = `Importing PDF Page ${pageNum} / ${pdf.numPages}...`;
+        const page = await pdf.getPage(pageNum);
+        const viewport = page.getViewport({ scale: 2.5 });
         const off = document.createElement('canvas');
-        off.width = LOGICAL_W;
-        off.height = LOGICAL_H;
-        const offCtx = off.getContext('2d');
-        const thumbCanvas = document.createElement('canvas');
-        thumbCanvas.width = 320;
-        thumbCanvas.height = 180;
-        const tCtx = thumbCanvas.getContext('2d');
+        off.width = viewport.width;
+        off.height = viewport.height;
+        const ctx = off.getContext('2d');
+        await page.render({ canvasContext: ctx, viewport }).promise;
 
-        for (let i = 0; i < state.slides.length; i++) {
-          if (state.slides[i].type === 'blank') {
-            await renderBackgroundLayer(state.slides[i], offCtx);
-            for (const st of state.slides[i].strokes) drawSingleStroke(offCtx, st);
-            tCtx.clearRect(0, 0, 320, 180);
-            tCtx.drawImage(off, 0, 0, 320, 180);
-            state.slides[i].thumbUrl = thumbCanvas.toDataURL('image/jpeg', 0.8);
-          }
-        }
-        rebuildThumbnails();
-        autoSaveSession();
+        // Store as high-res JPEG 0.90 so memory & PDF re-export stay super fast!
+        const dataUrl = off.toDataURL('image/jpeg', 0.90);
+        const sl = createBlankSlide();
+        sl.bgColor = '#000000';
+        sl.bgImage = dataUrl;
+        sl.thumbUrl = dataUrl;
+        importedSlides.push(sl);
       }
-    };
 
-    window.restoreOriginalSlideBg = function() {
-      const sld = currentSlide();
-      if (!sld) return;
-      sld.overrideBg = false;
-      sld.bgColor = sld.origBgColor;
-      sld.gridPattern = sld.origGridPattern;
-      renderCurrentSlideAll();
-      closeModal('bgModal');
-    };
-
-    // --- ZOOM & FIT TO SCREEN ---
-    function applyStageTransform() {
-      const vp = document.getElementById('boardViewport');
-      const baseScale = Math.min((vp.clientWidth - 24) / LOGICAL_W, (vp.clientHeight - 24) / LOGICAL_H);
-      const totalScale = baseScale * state.zoom;
-      stageEl.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${totalScale})`;
-      document.getElementById('lblZoom').textContent = `${Math.round(state.zoom * 100)}%`;
+      if (importedSlides.length > 0) {
+        slides = importedSlides;
+        currentSlideIndex = 0;
+        await renderCurrentSlide();
+        updateThumbnailsUI();
+        document.getElementById('statusToolLabel').textContent = `✓ Imported ${importedSlides.length} PDF slides!`;
+      }
     }
 
-    window.adjustZoom = function(delta) {
-      state.zoom = Math.max(0.5, Math.min(3.0, state.zoom + delta));
-      applyStageTransform();
-    };
+    async function importPptxFile(file) {
+      const zip = await JSZip.loadAsync(file);
+      const mediaFiles = Object.keys(zip.files)
+        .filter(k => k.startsWith('ppt/media/') && /\.(png|jpe?g|webp)$/i.test(k))
+        .sort();
 
-    window.fitBoardToScreen = function() {
-      state.zoom = 1.0;
-      state.panX = 0;
-      state.panY = 0;
-      applyStageTransform();
-    };
+      if (mediaFiles.length === 0) {
+        alert('No embedded slide images found in PPTX. Tip: Export PPTX as PDF for 100% exact font & layout fidelity!');
+        return;
+      }
 
-    window.addEventListener('resize', applyStageTransform);
+      const importedSlides = [];
+      for (const mPath of mediaFiles) {
+        const blob = await zip.files[mPath].async('blob');
+        const dataUrl = await readFileAsDataURL(blob);
+        const sl = createBlankSlide();
+        sl.bgImage = dataUrl;
+        sl.thumbUrl = dataUrl;
+        importedSlides.push(sl);
+      }
 
-    function updateBottomSlideReadout() {
-      const cur = state.currentSlideIdx + 1;
-      const max = state.slides.length;
-      document.getElementById('lblCurSlide').textContent = cur;
-      document.getElementById('lblMaxSlide').textContent = max;
-      document.getElementById('lblPresSlide').textContent = `${cur}/${max}`;
+      slides = importedSlides;
+      currentSlideIndex = 0;
+      await renderCurrentSlide();
+      updateThumbnailsUI();
     }
 
-    // --- INTERACTIVE RULER / PROTRACTOR WIDGETS ---
-    window.toggleWidget = function(id, btn) {
-      const el = document.getElementById(id);
-      const show = el.style.display !== 'flex' && el.style.display !== 'block';
-      el.style.display = show ? (id === 'rulerWidget' ? 'flex' : 'block') : 'none';
-      if (btn) btn.classList.toggle('active', show);
-    };
+    // ==========================================
+    // 12. MODALS & SAVED DECKS MANAGER
+    // ==========================================
+    const saveModal = document.getElementById('saveModal');
+    const decksModal = document.getElementById('decksModal');
 
-    let activeWidgetDrag = null;
-    document.querySelectorAll('.phys-widget').forEach(wEl => {
-      wEl.dataset.x = wEl.offsetLeft;
-      wEl.dataset.y = wEl.offsetTop;
-      wEl.dataset.rot = 0;
-
-      wEl.addEventListener('pointerdown', (e) => {
-        e.stopPropagation();
-        const isRotHandle = e.target.classList.contains('widget-handle');
-        activeWidgetDrag = {
-          el: wEl,
-          mode: isRotHandle ? 'rotate' : 'move',
-          startX: e.clientX,
-          startY: e.clientY,
-          origX: parseFloat(wEl.dataset.x) || 500,
-          origY: parseFloat(wEl.dataset.y) || 400,
-          origRot: parseFloat(wEl.dataset.rot) || 0
-        };
-      });
+    document.getElementById('openSaveModalBtn').addEventListener('click', () => {
+      modalDeckNameInput.value = currentDeckName;
+      saveModal.classList.add('open');
     });
+    document.getElementById('closeSaveModalBtn').addEventListener('click', () => saveModal.classList.remove('open'));
 
-    window.addEventListener('pointermove', (e) => {
-      if (!activeWidgetDrag) return;
-      const d = activeWidgetDrag;
-      if (d.mode === 'move') {
-        const nx = d.origX + (e.clientX - d.startX);
-        const ny = d.origY + (e.clientY - d.startY);
-        d.el.dataset.x = nx;
-        d.el.dataset.y = ny;
-        d.el.style.left = `${nx}px`;
-        d.el.style.top = `${ny}px`;
-      } else {
-        const nRot = (d.origRot + (e.clientY - d.startY) * 0.45) % 360;
-        d.el.dataset.rot = nRot;
-        d.el.style.transform = `rotate(${nRot}deg)`;
-        if (d.el.id === 'rulerWidget') {
-          document.getElementById('rulerAngleLbl').textContent = `${nRot.toFixed(1)}°`;
-        }
-      }
+    document.getElementById('openDecksModalBtn').addEventListener('click', async () => {
+      await renderSavedDecksList();
+      decksModal.classList.add('open');
     });
-    window.addEventListener('pointerup', () => { activeWidgetDrag = null; });
+    document.getElementById('closeDecksModalBtn').addEventListener('click', () => decksModal.classList.remove('open'));
 
-    // --- PRESENTER TIMER ---
-    let timerInterval = null;
-    let timerSeconds = 0;
-    window.toggleTimer = function() {
-      const btn = document.getElementById('btnTimer');
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        btn.textContent = 'Resume Timer';
-      } else {
-        btn.textContent = 'Pause Timer';
-        timerInterval = setInterval(() => {
-          timerSeconds++;
-          const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
-          const s = String(timerSeconds % 60).padStart(2, '0');
-          document.getElementById('lblTimer').textContent = `${m}:${s}`;
-        }, 1000);
-      }
-    };
-
-    // --- XP-PEN SHORTCUTS ---
-    function renderShortcutSettings() {
-      const container = document.getElementById('shortcutGridContainer');
-      const labels = {
-        undo: 'Button 1: Undo Last Stroke',
-        eraser: 'Button 2: Eraser Tool (Toggle)',
-        laser: 'Button 3: Laser Pointer',
-        prevSlide: 'Button 4: Previous Slide',
-        nextSlide: 'Button 5: Next Slide',
-        pen: 'Switch to Pen Tool',
-        blankBoard: 'Insert Quick Blank Board'
-      };
+    async function renderSavedDecksList() {
+      const container = document.getElementById('savedDecksListContainer');
+      const list = await getAllDecksFromDB();
       container.innerHTML = '';
-      Object.keys(labels).forEach(k => {
+
+      if (list.length === 0) {
+        container.innerHTML = `<div style="padding:14px;text-align:center;color:var(--text-muted);font-size:12px;">No saved decks in browser storage.</div>`;
+        return;
+      }
+
+      list.sort((a, b) => b.updatedAt - a.updatedAt).forEach((d) => {
         const row = document.createElement('div');
-        row.className = 'sc-row';
+        row.className = 'deck-item';
+        const dateStr = new Date(d.updatedAt).toLocaleString();
         row.innerHTML = `
-          <span>${labels[k]}</span>
-          <span class="sc-key" onclick="remapShortcut('${k}', this)">${state.shortcuts[k]}</span>
+          <div>
+            <div style="font-weight:600;font-size:13px;color:#93c5fd;">${d.name}</div>
+            <div style="font-size:11px;color:var(--text-muted);">${d.slides.length} slides • ${dateStr}</div>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn load-deck-btn">📂 Load</button>
+            <button class="btn danger del-deck-btn">🗑️ Delete</button>
+          </div>
         `;
+
+        row.querySelector('.load-deck-btn').addEventListener('click', async () => {
+          currentDeckId = d.id;
+          currentDeckName = d.name;
+          activeDeckNameInput.value = d.name;
+          modalDeckNameInput.value = d.name;
+          slides = d.slides;
+          currentSlideIndex = 0;
+          await renderCurrentSlide();
+          updateThumbnailsUI();
+          decksModal.classList.remove('open');
+        });
+
+        row.querySelector('.del-deck-btn').addEventListener('click', async () => {
+          await deleteDeckFromDB(d.id);
+          // If the deleted deck was the currently open deck, also reset the active board & filename!
+          if (d.id === currentDeckId) {
+            resetToBrandNewDeck('Untitled Lesson');
+          }
+          await renderSavedDecksList();
+        });
+
         container.appendChild(row);
       });
     }
 
-    window.remapShortcut = function(actionKey, badgeEl) {
-      badgeEl.textContent = 'Press key...';
-      const handler = (ev) => {
-        ev.preventDefault();
-        state.shortcuts[actionKey] = ev.key;
-        window.removeEventListener('keydown', handler);
-        renderShortcutSettings();
-      };
-      window.addEventListener('keydown', handler, { once: true });
-    };
-
-    window.addEventListener('keydown', (e) => {
-      if (e.target.isContentEditable || e.target.tagName === 'INPUT') return;
-
-      const kLower = e.key.toLowerCase();
-
-      if (e.ctrlKey || e.metaKey) {
-        if (kLower === 'z') {
-          e.preventDefault();
-          undoStroke();
-          return;
-        }
-        if (kLower === 'y') {
-          e.preventDefault();
-          redoStroke();
-          return;
-        }
-        if (kLower === 'a') {
-          e.preventDefault();
-          state.subShape = 'arrow1';
-          document.getElementById('selLineStyle').value = 'arrow1';
-          selectTool('line');
-          return;
-        }
-        if (kLower === 'l') {
-          e.preventDefault();
-          state.subShape = 'solidLine';
-          document.getElementById('selLineStyle').value = 'solidLine';
-          selectTool('line');
-          return;
-        }
-        if (kLower === 'e') {
-          e.preventDefault();
-          selectTool('eraser');
-          return;
-        }
-        return;
-      }
-
-      const sc = state.shortcuts;
-      if (kLower === sc.eraser.toLowerCase()) selectTool('eraser');
-      else if (kLower === sc.undo.toLowerCase()) undoStroke();
-      else if (kLower === sc.laser.toLowerCase()) selectTool('laser');
-      else if (kLower === sc.pen.toLowerCase()) selectTool('pen');
-      else if (e.key === sc.prevSlide || e.key === 'PageUp') goToSlide(state.currentSlideIdx - 1);
-      else if (e.key === sc.nextSlide || e.key === 'PageDown') goToSlide(state.currentSlideIdx + 1);
-      else if (kLower === sc.blankBoard.toLowerCase()) insertQuickBlankBoard();
-      else if (e.key === 'Tab') { e.preventDefault(); cycleSidebarMode(); }
-      else if (e.key === 'Escape' && state.boardMode === 'presentation') setBoardMode('teaching');
+    document.getElementById('clearAllDecksDbBtn').addEventListener('click', async () => {
+      if (!confirm('Permanently delete ALL saved decks from browser storage?')) return;
+      await clearAllDecksFromDB();
+      resetToBrandNewDeck('Untitled Lesson');
+      await renderSavedDecksList();
     });
 
-    // --- MODALS & EXPORT FUNCTIONS ---
-    window.openModal = function(id) {
-      if (id === 'xpPenModal') renderShortcutSettings();
-      if (id === 'bgModal') syncBgModalHighlights();
-      document.getElementById(id).style.display = 'flex';
-    };
-    window.closeModal = function(id) {
-      document.getElementById(id).style.display = 'none';
-    };
+    document.getElementById('startBlankFromModalBtn').addEventListener('click', () => {
+      resetToBrandNewDeck('Untitled Lesson');
+      decksModal.classList.remove('open');
+    });
 
-    window.openSlideOverviewModal = function() {
-      const grid = document.getElementById('overviewGridContainer');
-      grid.innerHTML = '';
-      state.slides.forEach((sld, idx) => {
-        const item = document.createElement('div');
-        item.className = `thumb-card ${idx === state.currentSlideIdx ? 'active' : ''}`;
-        item.onclick = () => { goToSlide(idx); closeModal('overviewModal'); };
-        item.innerHTML = `
-          <button class="thumb-del-btn" onclick="event.stopPropagation(); deleteSlideByIndex(${idx}); openSlideOverviewModal();">✕</button>
-          <div class="thumb-preview">
-            ${sld.thumbUrl ? `<img src="${sld.thumbUrl}" />` : `<span>Slide ${idx + 1}</span>`}
-          </div>
-          <div class="thumb-meta"><span>Slide ${idx + 1}</span><span>${sld.title}</span></div>
-        `;
-        grid.appendChild(item);
-      });
-      openModal('overviewModal');
-    };
+    // ==========================================
+    // 13. XP-PEN & KEYBOARD SHORTCUTS
+    // ==========================================
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
-    window.exportCurrentSlidePNG = function() {
-      const out = document.createElement('canvas');
-      out.width = LOGICAL_W;
-      out.height = LOGICAL_H;
-      const ctx = out.getContext('2d');
-      ctx.drawImage(bgCanvas, 0, 0);
-      ctx.drawImage(inkCanvas, 0, 0);
-      const a = document.createElement('a');
-      a.download = `${document.getElementById('inpLessonName').value}_Slide_${state.currentSlideIdx + 1}.png`;
-      a.href = out.toDataURL('image/png');
-      a.click();
-    };
-
-    window.exportAllAnnotatedPDF = async function() {
-      await generateLessonPDF(true);
-    };
-
-    window.exportCleanPDF = async function() {
-      await generateLessonPDF(false);
-    };
-
-    async function generateLessonPDF(includeAnnotations) {
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation: 'landscape', unit: 'px', format: [LOGICAL_W, LOGICAL_H] });
-      const offBg = document.createElement('canvas');
-      offBg.width = LOGICAL_W; offBg.height = LOGICAL_H;
-      const offBgCtx = offBg.getContext('2d');
-
-      for (let i = 0; i < state.slides.length; i++) {
-        if (i > 0) pdf.addPage([LOGICAL_W, LOGICAL_H], 'landscape');
-        const sld = state.slides[i];
-        await renderBackgroundLayer(sld, offBgCtx);
-        if (includeAnnotations) {
-          for (const st of sld.strokes) drawSingleStroke(offBgCtx, st);
-        }
-        const imgData = offBg.toDataURL('image/png');
-        pdf.addImage(imgData, 'PNG', 0, 0, LOGICAL_W, LOGICAL_H);
+      if (e.ctrlKey && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        undoStroke();
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'y') {
+        e.preventDefault();
+        redoStroke();
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'a') {
+        e.preventDefault();
+        lineSubType = 'arrow';
+        document.getElementById('lineSubType').value = 'arrow';
+        setTool('line');
+      } else if (e.ctrlKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        lineSubType = 'line';
+        document.getElementById('lineSubType').value = 'line';
+        setTool('line');
+      } else if ((e.ctrlKey && e.key.toLowerCase() === 'e') || (!e.ctrlKey && e.key.toLowerCase() === 'e')) {
+        e.preventDefault();
+        setTool(currentTool === 'eraser' ? 'pen' : 'eraser');
+      } else if (!e.ctrlKey && e.key.toLowerCase() === 'l') {
+        e.preventDefault();
+        setTool(currentTool === 'laser' ? 'pen' : 'laser');
+      } else if (!e.ctrlKey && e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setTool('pen');
+      } else if (e.key === 'Tab') {
+        e.preventDefault();
+        toggleSidebar();
+      } else if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+        switchToSlide(currentSlideIndex + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        switchToSlide(currentSlideIndex - 1);
+      } else if (e.key === 'Escape' && document.body.classList.contains('present-mode')) {
+        exitPresentMode();
       }
+    });
 
-      const suffix = includeAnnotations ? '_Annotated.pdf' : '_Clean_Original.pdf';
-      pdf.save((document.getElementById('inpLessonName').value || 'Physics_Lecture') + suffix);
-    }
-
-    window.downloadProjectJSON = function() {
-      syncActiveDeckRecord();
-      const dataStr = JSON.stringify({
-        version: '2.0',
-        name: document.getElementById('inpLessonName').value,
-        savedAt: new Date().toISOString(),
-        slides: state.slides
-      });
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = (document.getElementById('inpLessonName').value || 'Physics_Lesson') + '.physboard.json';
-      a.click();
-    };
-
-    async function importProjectJSON(file) {
-      try {
-        const text = await file.text();
-        const data = JSON.parse(text);
-        if (Array.isArray(data.slides) && data.slides.length > 0) {
-          const newDeck = {
-            id: 'deck_' + Date.now(),
-            name: data.name || file.name.replace(/\.json$/i, ''),
-            updatedAt: Date.now(),
-            currentSlideIdx: 0,
-            slides: data.slides
-          };
-          state.decks.push(newDeck);
-          switchToDeck(newDeck.id);
-        }
-      } catch (e) {
-        alert('Invalid project file.');
-      }
-    }
-
-    // Boot Application
-    loadLibraryOrInit();
+    // ==========================================
+    // 14. BOOTSTRAP APPLICATION
+    // ==========================================
+    (async function initApp() {
+      await initDB();
+      resetToBrandNewDeck('Untitled Lesson');
+      updateViewportLayout();
+    })();
   </script>
 </body>
 </html>
