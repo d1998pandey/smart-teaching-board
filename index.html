@@ -179,7 +179,7 @@
       position: relative;
     }
 
-    /* Left Slide Navigator Sidebar */
+    /* Slimmer Left Slide Navigator Sidebar */
     .slide-sidebar {
       width: 185px;
       background: var(--ui-panel);
@@ -313,22 +313,6 @@
     #bgCanvas { z-index: 1; }
     #inkCanvas { z-index: 2; }
     #tempCanvas { z-index: 3; cursor: crosshair; }
-
-    /* Floating Toolbar for Selected Image (Resize, Reset, Delete) */
-    #imgControlToolbar {
-      position: absolute;
-      z-index: 25;
-      display: none;
-      background: rgba(15, 23, 42, 0.95);
-      backdrop-filter: blur(8px);
-      border: 1.5px solid #38bdf8;
-      border-radius: 10px;
-      padding: 6px 10px;
-      gap: 6px;
-      align-items: center;
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55);
-      transform: translate(-50%, -100%);
-    }
 
     .phys-widget {
       position: absolute;
@@ -510,6 +494,7 @@
       background: rgba(56, 189, 248, 0.12);
     }
 
+    /* FLOATING MINI CONTROL PILL FOR PRESENTATION MODE */
     #presFloatingPill {
       position: fixed;
       bottom: 14px;
@@ -556,17 +541,14 @@
   <!-- TOP COMPACT TOOLBAR -->
   <header class="top-toolbar" id="topToolbar">
     <div class="tool-cluster">
-      <button class="t-btn" onclick="cycleSidebarMode()" title="Show / Strip / Hide Slide Sidebar (Tab)">
+      <button class="t-btn" onclick="cycleSidebarMode()" title="Show / Strip / Hide Slide Sidebar (Tab) for Maximum Writing Space">
         ☰ Slides
       </button>
-      <button class="t-btn" onclick="openDecksModal()" title="Manage & Switch Between Uploaded PDFs/PPTs/Decks">
+      <button class="t-btn" onclick="openDecksModal()" title="Manage & Switch Between Uploaded PDFs, PPTs & Saved Decks">
         📚 My Decks (<span id="lblDeckCount">1</span>)
       </button>
-      <button class="t-btn" onclick="document.getElementById('fileImportInput').click()" title="Import PDF, PPTX, or Images">
+      <button class="t-btn" onclick="document.getElementById('fileImportInput').click()" title="Import High-Res PDF, PPTX, or Images">
         📂 Import File
-      </button>
-      <button class="t-btn" onclick="document.getElementById('imgObjectInput').click()" title="Insert a Movable, Resizable Image onto Current Slide">
-        🖼️ Insert Image
       </button>
       <button class="t-btn" onclick="insertQuickBlankBoard()" title="Insert New Blank Board After Current Slide (B)">
         ➕ Blank Board
@@ -581,7 +563,7 @@
 
     <!-- Core Annotation Tools -->
     <div class="tool-cluster">
-      <button class="t-btn" id="tool-select" onclick="selectTool('select')" title="Select, Move, Resize or Delete Images (V)">🖱️ Select</button>
+      <button class="t-btn" id="tool-select" onclick="selectTool('select')" title="Select / Move Inserted Images (V)">🖱️ Select</button>
       <button class="t-btn active" id="tool-pen" onclick="selectTool('pen')" title="Smooth Pressure Pen (P)">✒️ Pen</button>
       <button class="t-btn" id="tool-highlighter" onclick="selectTool('highlighter')" title="Translucent Highlighter (H)">🖍️ Highlight</button>
       <button class="t-btn" id="tool-eraser" onclick="selectTool('eraser')" title="Eraser Tool (E)">🧹 Eraser</button>
@@ -592,11 +574,11 @@
       <button class="t-btn" onclick="togglePhysicsToolkit()" id="btnPhysBar" title="Toggle Ruler, Protractor & Physics Instruments">🧲 Physics Kit</button>
     </div>
 
-    <!-- Mode Switcher (Clean Teach & Present Only) & Session/Export Actions -->
+    <!-- Streamlined Mode Switcher (Only Teach & Present Modes) & Actions -->
     <div class="tool-cluster">
       <div class="mode-pills">
-        <button class="mode-pill active" id="mode-teaching" onclick="setBoardMode('teaching')">Teach</button>
-        <button class="mode-pill" id="mode-pres" onclick="setBoardMode('presentation')">Present</button>
+        <button class="mode-pill active" id="mode-teaching" onclick="setBoardMode('teaching')" title="Standard Teaching Workspace">Teach</button>
+        <button class="mode-pill" id="mode-pres" onclick="setBoardMode('presentation')" title="Full-Screen Presentation Mode">Present</button>
       </div>
       <button class="t-btn" onclick="openModal('bgModal')" title="Board Background & Grid Settings">🎨 Board BG</button>
       <button class="t-btn" onclick="openModal('exportModal')" title="Save Session or Export Annotated PDF/PNG">💾 Save/Export</button>
@@ -683,16 +665,6 @@
         <canvas id="inkCanvas" width="1920" height="1080"></canvas>
         <canvas id="tempCanvas" width="1920" height="1080"></canvas>
 
-        <!-- FLOATING IMAGE CONTROL BAR (APPEARS WHENEVER AN IMAGE IS SELECTED) -->
-        <div id="imgControlToolbar">
-          <span style="font-size:0.72rem; font-weight:700; color:#38bdf8; margin-right:4px;">Image Controls:</span>
-          <button class="t-btn" onclick="scaleSelectedImage(1.15)" title="Increase Image Size">➕ Size +</button>
-          <button class="t-btn" onclick="scaleSelectedImage(0.85)" title="Decrease Image Size">➖ Size −</button>
-          <button class="t-btn" onclick="resetSelectedImage()" title="Reset Image to Default Size & Position">↺ Reset Size</button>
-          <button class="t-btn danger" onclick="deleteSelectedImage()" title="Delete Selected Image (Del)">🗑️ Delete Image</button>
-          <button class="t-btn" onclick="deselectImageAndSwitchToPen()" title="Done Adjusting — Switch to Pen">✒️ Draw Over</button>
-        </div>
-
         <div id="rulerWidget" class="phys-widget">
           <div style="font-size:0.75rem; font-weight:700; display:flex; justify-content:space-between;">
             <span>PHYSICS STRAIGHTEDGE RULER (Drag to move, drag blue handle to rotate)</span>
@@ -761,7 +733,7 @@
     </div>
 
     <div class="tool-cluster">
-      <span class="mono-stat" id="stylusTelemetry">Tool: PEN | Tip: Double-click any image to resize/delete</span>
+      <span class="mono-stat" id="stylusTelemetry">Tool: PEN | Ready</span>
       <div class="divider"></div>
       <span class="mono-stat">⏱️ <b id="lblTimer" style="color:var(--ui-text);">00:00</b></span>
       <button class="t-btn" onclick="toggleTimer()" id="btnTimer">Start Timer</button>
@@ -794,7 +766,7 @@
     <button class="t-btn" onclick="setBoardMode('teaching')" title="Exit Presentation Mode (Esc)">✕ Exit</button>
   </div>
 
-  <!-- MODAL 1: BOARD BACKGROUND & GRID CUSTOMISATION (100% ENGLISH) -->
+  <!-- MODAL 1: BOARD BACKGROUND & GRID CUSTOMISATION (100% CLEAN ENGLISH UI) -->
   <div class="modal-backdrop" id="bgModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -802,7 +774,7 @@
         <button class="t-btn" onclick="closeModal('bgModal')">✕ Close</button>
       </div>
       <p style="font-size:0.8rem; color:var(--ui-muted);">
-        Your selected Background Color and Grid Pattern are highlighted below and automatically saved as the default for all new blank boards.
+        Select your preferred board background color and grid overlay. Your selection is highlighted with a blue border and automatically applied to all current and newly created blank boards.
       </p>
       <label style="display:flex; align-items:center; gap:8px; font-size:0.8rem; font-weight:600; color:#38bdf8; cursor:pointer;">
         <input type="checkbox" id="chkApplyAllBlank" checked style="width:16px; height:16px; accent-color:#38bdf8;" />
@@ -834,7 +806,7 @@
     </div>
   </div>
 
-  <!-- MODAL 2: MULTI-DECK / UPLOADED FILES LIBRARY MANAGER (100% ENGLISH + CLICKABLE ACTIVE BUTTON) -->
+  <!-- MODAL 2: MULTI-DECK / UPLOADED FILES LIBRARY MANAGER (100% CLEAN ENGLISH UI + WORKING ACTIVE BUTTON) -->
   <div class="modal-backdrop" id="decksModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -842,7 +814,7 @@
         <button class="t-btn" onclick="closeModal('decksModal')">✕ Close</button>
       </div>
       <p style="font-size:0.8rem; color:var(--ui-muted);">
-        Organize your uploaded PDFs, PPTX presentations, and class lectures into separate decks. Click any deck to open it on the board, rename it, or start a fresh deck.
+        Organize your uploaded PDFs, PPTX presentations, and class lectures as separate decks. Click any deck to open it on the board, rename it, or create a fresh deck.
       </p>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
         <button class="t-btn active" onclick="createNewEmptyDeck()">➕ Create New Blank Deck</button>
@@ -976,8 +948,7 @@
       bgColor = null,
       gridPattern = null,
       sourceDataUrl = null,
-      pptxElements = null,
-      objects = null
+      pptxElements = null
     } = {}) {
       const resolvedBg = bgColor !== null ? bgColor : (type === 'blank' ? state.defaultBgColor : '#ffffff');
       const resolvedGrid = gridPattern !== null ? gridPattern : (type === 'blank' ? state.defaultGridPattern : 'none');
@@ -994,7 +965,7 @@
         pptxElements: pptxElements || [],
         strokes: [],
         redoStack: [],
-        objects: objects || [],
+        objects: [],
         thumbUrl: null
       };
     }
@@ -1109,7 +1080,6 @@
       state.activeDeckId = target.id;
       state.slides = target.slides;
       state.currentSlideIdx = Math.min(target.currentSlideIdx || 0, Math.max(0, state.slides.length - 1));
-      state.selectedObjIdx = -1;
       document.getElementById('inpLessonName').value = target.name;
       document.getElementById('lblDeckCount').textContent = state.decks.length;
       fitBoardToScreen();
@@ -1140,18 +1110,17 @@
       closeModal('decksModal');
     };
 
-    window.promptRenameDeck = function(deckId) {
-      const target = state.decks.find(d => d.id === deckId);
-      if (!target) return;
-      const newName = prompt('Rename Deck:', target.name);
-      if (newName && newName.trim()) {
-        target.name = newName.trim();
-        if (target.id === state.activeDeckId) {
-          document.getElementById('inpLessonName').value = target.name;
-        }
-        autoSaveSession();
-        renderDecksModalList();
+    window.promptRenameDeckById = function(deckId) {
+      const deck = state.decks.find(d => d.id === deckId);
+      if (!deck) return;
+      const newName = prompt('Enter new name for this deck:', deck.name);
+      if (!newName || !newName.trim()) return;
+      deck.name = newName.trim();
+      if (deck.id === state.activeDeckId) {
+        document.getElementById('inpLessonName').value = deck.name;
       }
+      autoSaveSession();
+      renderDecksModalList();
     };
 
     window.resetCurrentDeckCompletely = function() {
@@ -1160,7 +1129,6 @@
       document.getElementById('inpLessonName').value = freshName;
       state.slides = [createSlide({ type: 'blank', title: 'Board 1' })];
       state.currentSlideIdx = 0;
-      state.selectedObjIdx = -1;
       const deck = state.decks.find(d => d.id === state.activeDeckId);
       if (deck) {
         deck.name = freshName;
@@ -1179,7 +1147,6 @@
         document.getElementById('inpLessonName').value = freshName;
         state.slides = [createSlide({ type: 'blank', title: 'Board 1' })];
         state.currentSlideIdx = 0;
-        state.selectedObjIdx = -1;
         state.decks[0].name = freshName;
         state.decks[0].slides = state.slides;
         state.decks[0].currentSlideIdx = 0;
@@ -1212,7 +1179,7 @@
       openModal('decksModal');
     };
 
-    // FIXED: The "Active" button is now a clickable button that opens the deck and closes the modal!
+    // FIXED: The "Active" button is now a real clickable button that selects the deck and closes the modal!
     function renderDecksModalList() {
       const container = document.getElementById('decksListContainer');
       container.innerHTML = '';
@@ -1220,28 +1187,33 @@
         const isCurrent = d.id === state.activeDeckId;
         const row = document.createElement('div');
         row.className = `deck-item ${isCurrent ? 'active-deck' : ''}`;
+        row.style.cursor = 'pointer';
+        row.onclick = () => {
+          switchToDeck(d.id);
+          closeModal('decksModal');
+        };
         row.innerHTML = `
-          <div style="cursor:pointer; flex:1;" onclick="switchToDeck('${d.id}'); closeModal('decksModal');">
+          <div>
             <div style="font-weight:700; font-size:0.88rem; color:#fff;">
               ${isCurrent ? '🟢 ' : '📁 '}${d.name}
             </div>
             <div style="font-size:0.73rem; color:var(--ui-muted); margin-top:2px;">
-              ${d.slides.length} Slide(s) &bull; Updated ${new Date(d.updatedAt).toLocaleTimeString()}
+              ${d.slides.length} Slides &bull; Updated ${new Date(d.updatedAt).toLocaleTimeString()}
             </div>
           </div>
-          <div style="display:flex; gap:6px;">
-            <button class="t-btn" onclick="promptRenameDeck('${d.id}')" title="Rename Deck">✏️ Rename</button>
-            <button class="t-btn active" onclick="switchToDeck('${d.id}'); closeModal('decksModal');">
+          <div style="display:flex; gap:6px;" onclick="event.stopPropagation();">
+            <button class="t-btn ${isCurrent ? 'active' : ''}" onclick="switchToDeck('${d.id}'); closeModal('decksModal');" title="Open this deck on the board">
               ${isCurrent ? '✓ Active (Open)' : 'Open Deck'}
             </button>
-            <button class="t-btn danger" onclick="deleteDeckById('${d.id}')">🗑️ Delete</button>
+            <button class="t-btn" onclick="promptRenameDeckById('${d.id}')" title="Rename Deck">✏️ Rename</button>
+            <button class="t-btn danger" onclick="deleteDeckById('${d.id}')" title="Delete Deck">🗑️ Delete</button>
           </div>
         `;
         container.appendChild(row);
       });
     }
 
-    // --- HIGH-DEFINITION BACKGROUND & MOVABLE IMAGE OBJECT RENDERING ---
+    // --- HIGH-DEFINITION BACKGROUND & DOCUMENT RENDERING ---
     const imageCache = new Map();
     function getCachedImage(dataUrl) {
       if (!dataUrl) return Promise.resolve(null);
@@ -1293,98 +1265,26 @@
 
       drawGridPattern(ctx, slide.gridPattern, slide.bgColor);
 
-      // Render Movable, Resizable Image Objects on Slide
       if (Array.isArray(slide.objects)) {
         for (let i = 0; i < slide.objects.length; i++) {
           const obj = slide.objects[i];
           const oImg = await getCachedImage(obj.dataUrl);
           if (oImg) {
             ctx.drawImage(oImg, obj.x, obj.y, obj.w, obj.h);
-            // Draw 4-Corner Resize Handles & Selection Frame when selected (only on live screen bgCtx)
-            if (ctx === bgCtx && state.selectedObjIdx === i) {
+            if (state.tool === 'select' && state.selectedObjIdx === i) {
               ctx.save();
               ctx.strokeStyle = '#38bdf8';
-              ctx.lineWidth = 3.5;
-              ctx.setLineDash([10, 6]);
+              ctx.lineWidth = 3;
+              ctx.setLineDash([8, 6]);
               ctx.strokeRect(obj.x, obj.y, obj.w, obj.h);
-              ctx.setLineDash([]);
-
-              // 4 Corner Resize Handles (NW, NE, SW, SE)
-              const hs = 22;
               ctx.fillStyle = '#38bdf8';
-              ctx.strokeStyle = '#ffffff';
-              ctx.lineWidth = 2;
-              const corners = [
-                [obj.x - hs / 2, obj.y - hs / 2],
-                [obj.x + obj.w - hs / 2, obj.y - hs / 2],
-                [obj.x - hs / 2, obj.y + obj.h - hs / 2],
-                [obj.x + obj.w - hs / 2, obj.y + obj.h - hs / 2]
-              ];
-              corners.forEach(([cx, cy]) => {
-                ctx.fillRect(cx, cy, hs, hs);
-                ctx.strokeRect(cx, cy, hs, hs);
-              });
+              ctx.fillRect(obj.x + obj.w - 12, obj.y + obj.h - 12, 24, 24);
               ctx.restore();
             }
           }
         }
       }
-      if (ctx === bgCtx) updateImageFloatingToolbar();
     }
-
-    // Updates position & visibility of the Floating Image Control Bar (Size +, Size -, Reset, Delete)
-    function updateImageFloatingToolbar() {
-      const bar = document.getElementById('imgControlToolbar');
-      const sld = currentSlide();
-      if (!sld || state.selectedObjIdx < 0 || !sld.objects || !sld.objects[state.selectedObjIdx]) {
-        bar.style.display = 'none';
-        return;
-      }
-      const obj = sld.objects[state.selectedObjIdx];
-      bar.style.display = 'flex';
-      const centerXPercent = ((obj.x + obj.w / 2) / LOGICAL_W) * 100;
-      const topYPercent = (Math.max(65, obj.y - 14) / LOGICAL_H) * 100;
-      bar.style.left = `${Math.max(18, Math.min(82, centerXPercent))}%`;
-      bar.style.top = `${topYPercent}%`;
-    }
-
-    window.scaleSelectedImage = function(factor) {
-      const sld = currentSlide();
-      if (!sld || state.selectedObjIdx < 0 || !sld.objects[state.selectedObjIdx]) return;
-      const obj = sld.objects[state.selectedObjIdx];
-      const cx = obj.x + obj.w / 2;
-      const cy = obj.y + obj.h / 2;
-      obj.w = Math.max(80, Math.min(1850, obj.w * factor));
-      obj.h = Math.max(80, Math.min(1020, obj.h * factor));
-      obj.x = cx - obj.w / 2;
-      obj.y = cy - obj.h / 2;
-      renderCurrentSlideAll();
-    };
-
-    window.resetSelectedImage = function() {
-      const sld = currentSlide();
-      if (!sld || state.selectedObjIdx < 0 || !sld.objects[state.selectedObjIdx]) return;
-      const obj = sld.objects[state.selectedObjIdx];
-      obj.x = obj.origX !== undefined ? obj.origX : (LOGICAL_W - 720) / 2;
-      obj.y = obj.origY !== undefined ? obj.origY : (LOGICAL_H - 500) / 2;
-      obj.w = obj.origW !== undefined ? obj.origW : 720;
-      obj.h = obj.origH !== undefined ? obj.origH : 500;
-      renderCurrentSlideAll();
-    };
-
-    window.deleteSelectedImage = function() {
-      const sld = currentSlide();
-      if (!sld || state.selectedObjIdx < 0 || !sld.objects[state.selectedObjIdx]) return;
-      sld.objects.splice(state.selectedObjIdx, 1);
-      state.selectedObjIdx = -1;
-      renderCurrentSlideAll();
-    };
-
-    window.deselectImageAndSwitchToPen = function() {
-      state.selectedObjIdx = -1;
-      selectTool('pen');
-      renderCurrentSlideAll();
-    };
 
     function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
       const lines = text.split('\n');
@@ -1651,7 +1551,7 @@
       autoSaveSession();
     }
 
-    // --- POINTER EVENTS & 4-CORNER IMAGE RESIZE / DOUBLE-CLICK SELECT ---
+    // --- POINTER EVENTS & LASER POINTER ---
     let isDrawing = false;
     let activeStroke = null;
     let dragObjOffset = null;
@@ -1670,59 +1570,12 @@
       state.laserPoint = null;
     });
 
-    // Double-click any image on the board to immediately select it (even if you were using Pen or Eraser!)
-    tempCanvas.addEventListener('dblclick', (e) => {
-      const pt = clientToStageCoords(e.clientX, e.clientY);
-      const sld = currentSlide();
-      if (sld && Array.isArray(sld.objects)) {
-        for (let i = sld.objects.length - 1; i >= 0; i--) {
-          const o = sld.objects[i];
-          if (pt.x >= o.x && pt.x <= o.x + o.w && pt.y >= o.y && pt.y <= o.y + o.h) {
-            selectTool('select');
-            state.selectedObjIdx = i;
-            renderCurrentSlideAll();
-            return;
-          }
-        }
-      }
-    });
-
-    function detectImageCornerHandle(pt, o) {
-      const tol = 34;
-      if (Math.hypot(pt.x - o.x, pt.y - o.y) <= tol) return 'nw';
-      if (Math.hypot(pt.x - (o.x + o.w), pt.y - o.y) <= tol) return 'ne';
-      if (Math.hypot(pt.x - o.x, pt.y - (o.y + o.h)) <= tol) return 'sw';
-      if (Math.hypot(pt.x - (o.x + o.w), pt.y - (o.y + o.h)) <= tol) return 'se';
-      return null;
-    }
-
     tempCanvas.addEventListener('pointerdown', (e) => {
       if (state.penOnly && e.pointerType === 'touch') return;
       e.preventDefault();
       tempCanvas.setPointerCapture(e.pointerId);
 
       const pt = clientToStageCoords(e.clientX, e.clientY);
-      const sld = currentSlide();
-
-      // If an image is currently selected and user grabs one of its 4 blue resize corners, resize immediately!
-      if (sld && state.selectedObjIdx >= 0 && sld.objects[state.selectedObjIdx]) {
-        const selObj = sld.objects[state.selectedObjIdx];
-        const corner = detectImageCornerHandle(pt, selObj);
-        if (corner) {
-          selectTool('select');
-          dragObjOffset = {
-            mode: corner,
-            startX: pt.x,
-            startY: pt.y,
-            origX: selObj.x,
-            origY: selObj.y,
-            origW: selObj.w,
-            origH: selObj.h
-          };
-          return;
-        }
-      }
-
       const effectiveTool = state.tool;
 
       document.getElementById('stylusTelemetry').textContent =
@@ -1734,36 +1587,21 @@
       }
 
       if (effectiveTool === 'select') {
+        const sld = currentSlide();
         state.selectedObjIdx = -1;
         if (sld && Array.isArray(sld.objects)) {
           for (let i = sld.objects.length - 1; i >= 0; i--) {
             const o = sld.objects[i];
-            const corner = detectImageCornerHandle(pt, o);
-            if (corner || (pt.x >= o.x && pt.x <= o.x + o.w && pt.y >= o.y && pt.y <= o.y + o.h)) {
+            if (pt.x >= o.x && pt.x <= o.x + o.w && pt.y >= o.y && pt.y <= o.y + o.h) {
               state.selectedObjIdx = i;
-              dragObjOffset = {
-                mode: corner || 'move',
-                startX: pt.x,
-                startY: pt.y,
-                origX: o.x,
-                origY: o.y,
-                origW: o.w,
-                origH: o.h,
-                dx: pt.x - o.x,
-                dy: pt.y - o.y
-              };
+              const isResizeCorner = (pt.x > o.x + o.w - 35 && pt.y > o.y + o.h - 35);
+              dragObjOffset = { mode: isResizeCorner ? 'resize' : 'move', dx: pt.x - o.x, dy: pt.y - o.y };
               break;
             }
           }
         }
         renderCurrentSlideAll();
         return;
-      }
-
-      // Clicking outside with another tool hides image selection handles
-      if (state.selectedObjIdx >= 0) {
-        state.selectedObjIdx = -1;
-        renderBackgroundLayer(sld, bgCtx);
       }
 
       isDrawing = true;
@@ -1826,34 +1664,14 @@
         return;
       }
 
-      if (dragObjOffset && state.selectedObjIdx >= 0) {
+      if (effectiveTool === 'select' && dragObjOffset && state.selectedObjIdx >= 0) {
         const obj = currentSlide().objects[state.selectedObjIdx];
-        const dx = pt.x - dragObjOffset.startX;
-        const dy = pt.y - dragObjOffset.startY;
-
         if (dragObjOffset.mode === 'move') {
           obj.x = pt.x - dragObjOffset.dx;
           obj.y = pt.y - dragObjOffset.dy;
-        } else if (dragObjOffset.mode === 'se') {
-          obj.w = Math.max(80, dragObjOffset.origW + dx);
-          obj.h = Math.max(80, dragObjOffset.origH + dy);
-        } else if (dragObjOffset.mode === 'sw') {
-          const nw = Math.max(80, dragObjOffset.origW - dx);
-          obj.x = dragObjOffset.origX + (dragObjOffset.origW - nw);
-          obj.w = nw;
-          obj.h = Math.max(80, dragObjOffset.origH + dy);
-        } else if (dragObjOffset.mode === 'ne') {
-          obj.w = Math.max(80, dragObjOffset.origW + dx);
-          const nh = Math.max(80, dragObjOffset.origH - dy);
-          obj.y = dragObjOffset.origY + (dragObjOffset.origH - nh);
-          obj.h = nh;
-        } else if (dragObjOffset.mode === 'nw') {
-          const nw = Math.max(80, dragObjOffset.origW - dx);
-          const nh = Math.max(80, dragObjOffset.origH - dy);
-          obj.x = dragObjOffset.origX + (dragObjOffset.origW - nw);
-          obj.y = dragObjOffset.origY + (dragObjOffset.origH - nh);
-          obj.w = nw;
-          obj.h = nh;
+        } else {
+          obj.w = Math.max(60, pt.x - obj.x);
+          obj.h = Math.max(60, pt.y - obj.y);
         }
         renderBackgroundLayer(currentSlide(), bgCtx);
         return;
@@ -1887,11 +1705,7 @@
     });
 
     window.addEventListener('pointerup', () => {
-      if (dragObjOffset) {
-        dragObjOffset = null;
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
-      }
+      dragObjOffset = null;
       if (!isDrawing) return;
       isDrawing = false;
 
@@ -2063,7 +1877,7 @@
         } else if (ext === 'ppt') {
           alert('Legacy binary .PPT detected: Please save as .PPTX or .PDF in PowerPoint for HD rendering.');
         } else if (['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
-          await importImageOnCurrentOrNewSlide(file);
+          await importImageAsSlide(file);
         } else if (ext === 'json' || ext === 'physboard') {
           await importProjectJSON(file);
         }
@@ -2100,7 +1914,7 @@
 
       if (newSlides.length > 0) {
         document.getElementById('inpLessonName').value = baseFileName;
-        if (state.slides.length === 1 && state.slides[0].strokes.length === 0 && state.slides[0].type === 'blank' && state.slides[0].objects.length === 0) {
+        if (state.slides.length === 1 && state.slides[0].strokes.length === 0 && state.slides[0].type === 'blank') {
           state.slides = newSlides;
           state.currentSlideIdx = 0;
         } else {
@@ -2213,38 +2027,34 @@
       }
     }
 
-    // FIXED: Imported images are added as movable, resizable, resettable, and deletable objects!
-    async function insertResizableImageObjectOnSlide(file, sld) {
+    async function importImageAsSlide(file) {
       const dataUrl = await readFileAsDataURL(file);
-      const img = await getCachedImage(dataUrl);
-      let w = 760, h = 520;
-      if (img && img.width && img.height) {
-        const scale = Math.min(960 / img.width, 660 / img.height, 1.2);
-        w = Math.round(img.width * scale);
-        h = Math.round(img.height * scale);
-      }
-      const x = Math.round((LOGICAL_W - w) / 2);
-      const y = Math.round((LOGICAL_H - h) / 2);
-
-      sld.objects.push({
-        dataUrl,
-        x, y, w, h,
-        origX: x, origY: y, origW: w, origH: h
-      });
-      selectTool('select');
-      state.selectedObjIdx = sld.objects.length - 1;
-    }
-
-    async function importImageOnCurrentOrNewSlide(file) {
-      const sld = currentSlide();
-      await insertResizableImageObjectOnSlide(file, sld);
+      const cleanName = file.name.replace(/\.[^/.]+$/, '');
+      document.getElementById('inpLessonName').value = cleanName;
+      state.slides.push(createSlide({
+        type: 'image',
+        title: cleanName,
+        bgColor: state.defaultBgColor,
+        gridPattern: 'none',
+        sourceDataUrl: dataUrl
+      }));
+      state.currentSlideIdx = state.slides.length - 1;
       syncActiveDeckRecord();
     }
 
     document.getElementById('imgObjectInput').addEventListener('change', async (e) => {
       if (e.target.files && e.target.files[0]) {
-        await insertResizableImageObjectOnSlide(e.target.files[0], currentSlide());
-        e.target.value = '';
+        const dataUrl = await readFileAsDataURL(e.target.files[0]);
+        const sld = currentSlide();
+        sld.objects.push({
+          dataUrl,
+          x: 520,
+          y: 260,
+          w: 640,
+          h: 440
+        });
+        selectTool('select');
+        state.selectedObjIdx = sld.objects.length - 1;
         renderCurrentSlideAll();
       }
     });
@@ -2314,7 +2124,6 @@
 
     window.deleteSlideByIndex = function(idx) {
       if (idx < 0 || idx >= state.slides.length) return;
-      state.selectedObjIdx = -1;
       if (state.slides.length === 1) {
         const freshName = 'Physics_Lecture_1';
         document.getElementById('inpLessonName').value = freshName;
@@ -2398,11 +2207,6 @@
       if (presPen) presPen.classList.toggle('active', t === 'pen');
       if (presEraser) presEraser.classList.toggle('active', t === 'eraser');
 
-      if (t !== 'select' && state.selectedObjIdx >= 0) {
-        state.selectedObjIdx = -1;
-        renderBackgroundLayer(currentSlide(), bgCtx);
-      }
-
       tempCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
       document.getElementById('stylusTelemetry').textContent = `Tool: ${t.toUpperCase()} | Ready`;
     };
@@ -2450,8 +2254,7 @@
 
     window.confirmClearSlide = function() {
       const sld = currentSlide();
-      if (!sld) return;
-      if (sld.strokes.length === 0 && (!sld.objects || sld.objects.length === 0)) return;
+      if (!sld || sld.strokes.length === 0) return;
       if (confirm('Clear all handwritten annotations on this slide?')) {
         sld.strokes = [];
         sld.redoStack = [];
@@ -2479,8 +2282,10 @@
     window.setBoardMode = function(mode) {
       state.boardMode = mode;
       document.body.className = `mode-${mode}`;
-      document.getElementById('mode-teaching').classList.toggle('active', mode === 'teaching');
-      document.getElementById('mode-pres').classList.toggle('active', mode === 'presentation');
+      const teachBtn = document.getElementById('mode-teaching');
+      const presBtn = document.getElementById('mode-pres');
+      if (teachBtn) teachBtn.classList.toggle('active', mode === 'teaching');
+      if (presBtn) presBtn.classList.toggle('active', mode === 'presentation');
 
       if (mode === 'presentation' && document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
@@ -2703,7 +2508,7 @@
       }
     };
 
-    // --- XP-PEN SHORTCUTS & KEYBOARD DELETE FOR SELECTED IMAGE ---
+    // --- XP-PEN SHORTCUTS ---
     function renderShortcutSettings() {
       const container = document.getElementById('shortcutGridContainer');
       const labels = {
@@ -2740,13 +2545,6 @@
 
     window.addEventListener('keydown', (e) => {
       if (e.target.isContentEditable || e.target.tagName === 'INPUT') return;
-
-      // Delete or Backspace deletes currently selected image!
-      if ((e.key === 'Delete' || e.key === 'Backspace') && state.selectedObjIdx >= 0) {
-        e.preventDefault();
-        deleteSelectedImage();
-        return;
-      }
 
       const kLower = e.key.toLowerCase();
 
@@ -2788,7 +2586,6 @@
       else if (kLower === sc.undo.toLowerCase()) undoStroke();
       else if (kLower === sc.laser.toLowerCase()) selectTool('laser');
       else if (kLower === sc.pen.toLowerCase()) selectTool('pen');
-      else if (kLower === 'v') selectTool('select');
       else if (e.key === sc.prevSlide || e.key === 'PageUp') goToSlide(state.currentSlideIdx - 1);
       else if (e.key === sc.nextSlide || e.key === 'PageDown') goToSlide(state.currentSlideIdx + 1);
       else if (kLower === sc.blankBoard.toLowerCase()) insertQuickBlankBoard();
@@ -2923,7 +2720,7 @@
       syncActiveDeckRecord();
       const cleanName = getCleanExportFileName();
       const dataStr = JSON.stringify({
-        version: '2.2',
+        version: '2.1',
         name: cleanName,
         savedAt: new Date().toISOString(),
         slides: state.slides
