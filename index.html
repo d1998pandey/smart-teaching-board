@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Physix Smart Board — Pro Teaching Studio for XP-Pen & Windows 11</title>
+  <title>Physix Smart Board — Pro Teaching & Recording Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -103,8 +103,21 @@
     }
     .t-btn.danger:hover { background: var(--ui-danger); color: #fff; border-color: var(--ui-danger); }
 
+    /* Pulsing Recording Indicator Button */
+    .t-btn.rec-active {
+      background: #dc2626 !important;
+      color: #ffffff !important;
+      border-color: #f87171 !important;
+      animation: recPulse 1.2s infinite ease-in-out;
+    }
+    @keyframes recPulse {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      50% { box-shadow: 0 0 0 6px rgba(239, 68, 68, 0); }
+    }
+
     .bg-choice-btn.selected-choice,
-    .grid-choice-btn.selected-choice {
+    .grid-choice-btn.selected-choice,
+    .cam-shape-btn.selected-choice {
       background: rgba(59, 130, 246, 0.22) !important;
       border: 2px solid #38bdf8 !important;
       color: #ffffff !important;
@@ -314,6 +327,75 @@
     #inkCanvas { z-index: 2; }
     #tempCanvas { z-index: 3; cursor: crosshair; }
 
+    /* ON-BOARD DRAGGABLE & RESIZABLE CAMERA OVERLAY WIDGET */
+    #cameraWidget {
+      position: absolute;
+      z-index: 18;
+      left: 1560px;
+      top: 720px;
+      width: 300px;
+      height: 300px;
+      border: 4px solid #38bdf8;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.65);
+      background: #000;
+      cursor: move;
+      display: none;
+      touch-action: none;
+    }
+    #cameraVideoEl {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      pointer-events: none;
+      transform: scaleX(-1);
+    }
+    #camResizeHandle {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: rgba(59, 130, 246, 0.95);
+      border: 2px solid #ffffff;
+      color: #fff;
+      font-size: 14px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: nwse-resize;
+      z-index: 5;
+      opacity: 0;
+      transition: opacity 0.15s;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.6);
+    }
+    #cameraWidget:hover #camResizeHandle {
+      opacity: 1;
+    }
+    #camDragBadge {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.82);
+      color: #f8fafc;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 99px;
+      border: 1px solid rgba(255,255,255,0.25);
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    #cameraWidget:hover #camDragBadge {
+      opacity: 1;
+    }
+
     .phys-widget {
       position: absolute;
       z-index: 15;
@@ -438,8 +520,8 @@
       border: 1px solid var(--ui-border);
       border-radius: 14px;
       width: 100%;
-      max-width: 700px;
-      max-height: 86vh;
+      max-width: 720px;
+      max-height: 88vh;
       overflow-y: auto;
       padding: 20px;
       display: flex;
@@ -574,8 +656,14 @@
       <button class="t-btn" onclick="togglePhysicsToolkit()" id="btnPhysBar" title="Toggle Ruler, Protractor & Movable Image Tools">🧲 Physics Kit</button>
     </div>
 
-    <!-- Mode Switcher (Only Teach & Present Modes) & Session/Export Actions -->
+    <!-- Camera Studio, Direct Recording & Mode Switcher -->
     <div class="tool-cluster">
+      <button class="t-btn" id="btnCamStudio" onclick="openCameraStudioModal()" title="Configure Camera (Camo Studio / Laptop Cam), Shape (Circle/Square/Rect/Oval), Size & Position">
+        🎥 Camera Studio
+      </button>
+      <button class="t-btn" id="btnQuickRec" onclick="toggleBoardRecording()" title="Start/Stop Direct 1080p Lecture Recording (Board + Ink + Camera + Mic)">
+        🔴 Start Rec
+      </button>
       <div class="mode-pills">
         <button class="mode-pill active" id="mode-teaching" onclick="setBoardMode('teaching')">Teach</button>
         <button class="mode-pill" id="mode-pres" onclick="setBoardMode('presentation')">Present</button>
@@ -608,7 +696,7 @@
       <input type="range" id="slPenWidth" min="1" max="28" step="0.5" value="4.5" oninput="setPenWidth(parseFloat(this.value), null)" style="width:75px; accent-color:var(--ui-accent);" />
     </div>
 
-    <!-- Selected Image Action Bar (Appears Automatically When an Inserted Image is Selected!) -->
+    <!-- Selected Image Action Bar -->
     <div class="tool-cluster" id="selectedImageBar" style="display:none; background:rgba(59,130,246,0.15); padding:2px 8px; border-radius:7px; border:1px solid var(--ui-accent);">
       <span style="font-size:0.72rem; color:#60a5fa; font-weight:700;">IMAGE:</span>
       <button class="t-btn" onclick="rotateSelectedImage(-15)" title="Rotate Image 15° Counter-Clockwise">↺ −15°</button>
@@ -673,6 +761,13 @@
         <canvas id="bgCanvas" width="1920" height="1080"></canvas>
         <canvas id="inkCanvas" width="1920" height="1080"></canvas>
         <canvas id="tempCanvas" width="1920" height="1080"></canvas>
+
+        <!-- ON-BOARD DRAGGABLE & RESIZABLE TEACHER CAMERA OVERLAY -->
+        <div id="cameraWidget" title="Drag anywhere on the board to reposition your camera">
+          <video id="cameraVideoEl" autoplay playsinline muted></video>
+          <div id="camDragBadge">✋ Drag to Move</div>
+          <div id="camResizeHandle" title="Drag to resize camera">↘</div>
+        </div>
 
         <div id="rulerWidget" class="phys-widget">
           <div style="font-size:0.75rem; font-weight:700; display:flex; justify-content:space-between;">
@@ -744,6 +839,7 @@
     <div class="tool-cluster">
       <span class="mono-stat" id="stylusTelemetry">Tool: PEN | Ready</span>
       <div class="divider"></div>
+      <span class="mono-stat" id="recTimerBadge" style="display:none; color:#f87171; font-weight:700;">🔴 REC <b id="lblRecTime">00:00</b></span>
       <span class="mono-stat">⏱️ <b id="lblTimer" style="color:var(--ui-text);">00:00</b></span>
       <button class="t-btn" onclick="toggleTimer()" id="btnTimer">Start Timer</button>
     </div>
@@ -772,10 +868,91 @@
     <div class="divider"></div>
     <button class="t-btn" id="pres-eraser-btn" onclick="selectTool('eraser')" title="Eraser Tool">🧹</button>
     <button class="t-btn" onclick="insertQuickBlankBoard()" title="Add New Blank Slide">➕</button>
+    <button class="t-btn" id="presCamBtn" onclick="toggleCameraOverlay()" title="Toggle Camera Overlay On/Off">🎥</button>
+    <button class="t-btn" id="presRecBtn" onclick="toggleBoardRecording()" title="Start/Stop Recording">🔴 Rec</button>
     <button class="t-btn" onclick="setBoardMode('teaching')" title="Exit Presentation Mode (Esc)">✕ Exit</button>
   </div>
 
-  <!-- MODAL 1: BOARD BACKGROUND & GRID CUSTOMISATION (CLEAN ENGLISH UI) -->
+  <!-- MODAL 0: CAMERA & DIRECT LECTURE RECORDING STUDIO -->
+  <div class="modal-backdrop" id="cameraModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>🎥 Built-in Camera Overlay & Lecture Recording Studio</h3>
+        <button class="t-btn" onclick="closeModal('cameraModal')">✕ Close</button>
+      </div>
+      <p style="font-size:0.8rem; color:var(--ui-muted); line-height:1.45;">
+        Record your Full-HD (1920×1080) Physics lectures directly inside the browser without OBS! Your camera overlay sits right on the board so you always see the exact area it covers, and you can drag it anywhere at any time.
+      </p>
+
+      <!-- Camera & Microphone Device Selectors -->
+      <div class="shortcut-grid">
+        <div style="display:flex; flex-direction:column; gap:5px;">
+          <label style="font-size:0.76rem; font-weight:700; color:var(--ui-muted);">VIDEO SOURCE (Camo Studio / DroidCam / Laptop Cam):</label>
+          <select id="selVideoDevice" class="t-btn" style="width:100%; padding:8px;" onchange="switchCameraDevice()"></select>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:5px;">
+          <label style="font-size:0.76rem; font-weight:700; color:var(--ui-muted);">AUDIO MICROPHONE (Boya Mic / Headset / Default):</label>
+          <select id="selAudioDevice" class="t-btn" style="width:100%; padding:8px;"></select>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+        <button class="t-btn active" id="btnToggleCamModal" onclick="toggleCameraOverlay()">
+          📷 Turn Camera Overlay ON
+        </button>
+        <button class="t-btn" onclick="refreshMediaDevices()">🔄 Refresh Devices</button>
+        <label class="t-btn" style="cursor:pointer;">
+          <input type="checkbox" id="chkMirrorCam" checked onchange="setCameraMirror(this.checked)" /> ↔️ Mirror Camera Video
+        </label>
+        <div style="display:flex; align-items:center; gap:5px; font-size:0.76rem; font-weight:600;">
+          <span>Border:</span>
+          <input type="color" id="inpCamBorderCol" value="#38bdf8" oninput="setCameraBorderColor(this.value)" style="width:28px; height:26px; border:none; background:transparent; cursor:pointer;" />
+        </div>
+      </div>
+
+      <!-- Shape Configuration: Circle, Square, Rectangle, Oval -->
+      <h4 style="font-size:0.82rem; margin-top:4px;">1. Camera Frame Shape</h4>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="t-btn cam-shape-btn selected-choice" data-shape="circle" onclick="setCameraShape('circle')">⭕ Circle</button>
+        <button class="t-btn cam-shape-btn" data-shape="square" onclick="setCameraShape('square')">⬜ Rounded Square</button>
+        <button class="t-btn cam-shape-btn" data-shape="rect" onclick="setCameraShape('rect')">▭ Rectangle (16:9)</button>
+        <button class="t-btn cam-shape-btn" data-shape="oval" onclick="setCameraShape('oval')">🥚 Portrait Oval</button>
+      </div>
+
+      <!-- Size & Quick Corner Position Configuration -->
+      <div class="shortcut-grid" style="align-items:center;">
+        <div style="display:flex; flex-direction:column; gap:5px;">
+          <div style="display:flex; justify-content:space-between; font-size:0.78rem; font-weight:700;">
+            <span>2. Camera Size (Scale)</span>
+            <span id="lblCamSize" style="color:#38bdf8; font-family:monospace;">300 px</span>
+          </div>
+          <input type="range" id="slCamSize" min="140" max="620" step="10" value="300" oninput="setCameraBaseSize(parseInt(this.value, 10))" style="width:100%; accent-color:var(--ui-accent);" />
+        </div>
+        <div style="display:flex; flex-direction:column; gap:5px;">
+          <span style="font-size:0.76rem; font-weight:700; color:var(--ui-muted);">3. Quick Snap Position (Or Drag Directly):</span>
+          <div style="display:flex; gap:5px; flex-wrap:wrap;">
+            <button class="t-btn" onclick="snapCameraToCorner('br')">↘ Bottom-Right</button>
+            <button class="t-btn" onclick="snapCameraToCorner('bl')">↙ Bottom-Left</button>
+            <button class="t-btn" onclick="snapCameraToCorner('tr')">↗ Top-Right</button>
+            <button class="t-btn" onclick="snapCameraToCorner('tl')">↖ Top-Left</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Direct Board + Camera + Audio Recording Controls -->
+      <div style="border-top:1px solid var(--ui-border); padding-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div style="font-size:0.78rem; color:var(--ui-muted);">
+          <b style="color:#4ade80;">✓ Clean 1080p Board Recording:</b> Records only the Board, Ink, Laser & Camera Overlay (toolbars are automatically excluded).
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="t-btn active" id="btnModalRec" onclick="toggleBoardRecording()">🔴 Start Lecture Recording</button>
+          <button class="t-btn" onclick="closeModal('cameraModal')">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 1: BOARD BACKGROUND & GRID CUSTOMISATION -->
   <div class="modal-backdrop" id="bgModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -815,7 +992,7 @@
     </div>
   </div>
 
-  <!-- MODAL 2: MULTI-DECK / UPLOADED FILES LIBRARY MANAGER (CLEAN ENGLISH UI & WORKING ACTIVE BUTTON) -->
+  <!-- MODAL 2: MULTI-DECK / UPLOADED FILES LIBRARY MANAGER -->
   <div class="modal-backdrop" id="decksModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -864,2043 +1041,4 @@
       </div>
       <div style="display:flex; gap:8px; align-items:center;">
         <span style="font-size:0.82rem; font-weight:600;">File / Deck Name:</span>
-        <input type="text" id="inpLessonName" value="Physics_Lecture_1" oninput="renameCurrentDeck(this.value)" style="flex:1; padding:7px 10px; border-radius:6px; border:1px solid var(--ui-accent); background:var(--ui-card); color:var(--ui-text); font-weight:600;" placeholder="Enter file name before downloading..." />
-      </div>
-      <div class="shortcut-grid">
-        <button class="t-btn" id="btnExportPNG" onclick="exportCurrentSlidePNG()">🖼️ Export Current Slide (HD PNG)</button>
-        <button class="t-btn active" id="btnExportAnnPDF" onclick="exportAllAnnotatedPDF()">📄 Export Annotated Lesson (Fast HD PDF)</button>
-        <button class="t-btn" id="btnExportCleanPDF" onclick="exportCleanPDF()">📄 Export Original Slides Without Ink (PDF)</button>
-        <button class="t-btn" onclick="downloadProjectJSON()">📦 Download Deck File (.physboard JSON)</button>
-        <button class="t-btn" onclick="saveToIndexedDBManual()">💾 Save All Decks to Browser Storage</button>
-        <button class="t-btn" onclick="document.getElementById('fileImportInput').click(); closeModal('exportModal')">📂 Open Saved .physboard File</button>
-      </div>
-      <div id="exportStatusMsg" style="font-size:0.8rem; color:var(--ui-success); font-weight:600;">
-        ✓ Optimized HD PDF Exporter Ready (12–15 slides ~ 2–4 MB, instant repeatable downloads).
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL 5: SLIDE OVERVIEW GRID -->
-  <div class="modal-backdrop" id="overviewModal">
-    <div class="modal-card" style="max-width:960px;">
-      <div class="modal-header">
-        <h3>⊞ All Slides Overview</h3>
-        <button class="t-btn" onclick="closeModal('overviewModal')">✕ Close</button>
-      </div>
-      <div id="overviewGridContainer" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px;"></div>
-    </div>
-  </div>
-
-  <script>
-    if (window.pdfjsLib) {
-      window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-    }
-
-    const LOGICAL_W = 1920;
-    const LOGICAL_H = 1080;
-
-    const savedDefaultBg = localStorage.getItem('physix_default_bg') || '#062c1e';
-    const savedDefaultGrid = localStorage.getItem('physix_default_grid') || 'none';
-
-    const state = {
-      boardMode: 'teaching',
-      sidebarMode: 'full',
-      tool: 'pen',
-      subShape: 'arrow1',
-      subGeo: 'rect',
-      eraserType: 'stroke',
-      inkColor: '#ffffff',
-      penWidth: 4.5,
-      defaultBgColor: savedDefaultBg,
-      defaultGridPattern: savedDefaultGrid,
-      penOnly: false,
-      laserHalo: true,
-      zoom: 1.0,
-      panX: 0,
-      panY: 0,
-      currentSlideIdx: 0,
-      returnSlideIdx: null,
-      slides: [],
-      decks: [],
-      activeDeckId: null,
-      laserTrail: [],
-      laserPoint: null,
-      selectedObjIdx: -1,
-      isExporting: false,
-      shortcuts: {
-        undo: 'z',
-        eraser: 'e',
-        laser: 'l',
-        prevSlide: 'ArrowLeft',
-        nextSlide: 'ArrowRight',
-        pen: 'p',
-        blankBoard: 'b'
-      }
-    };
-
-    const stageEl = document.getElementById('board-stage');
-    const bgCanvas = document.getElementById('bgCanvas');
-    const bgCtx = bgCanvas.getContext('2d');
-    const inkCanvas = document.getElementById('inkCanvas');
-    const inkCtx = inkCanvas.getContext('2d');
-    const tempCanvas = document.getElementById('tempCanvas');
-    const tempCtx = tempCanvas.getContext('2d');
-
-    [bgCtx, inkCtx, tempCtx].forEach(c => {
-      c.imageSmoothingEnabled = true;
-      c.imageSmoothingQuality = 'high';
-    });
-
-    function createSlide({
-      type = 'blank',
-      title = 'Board 1',
-      bgColor = null,
-      gridPattern = null,
-      sourceDataUrl = null,
-      pptxElements = null
-    } = {}) {
-      const resolvedBg = bgColor !== null ? bgColor : (type === 'blank' ? state.defaultBgColor : '#ffffff');
-      const resolvedGrid = gridPattern !== null ? gridPattern : (type === 'blank' ? state.defaultGridPattern : 'none');
-      return {
-        id: 'sld_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-        type,
-        title,
-        bgColor: resolvedBg,
-        origBgColor: resolvedBg,
-        gridPattern: resolvedGrid,
-        origGridPattern: resolvedGrid,
-        overrideBg: false,
-        sourceDataUrl,
-        pptxElements: pptxElements || [],
-        strokes: [],
-        redoStack: [],
-        objects: [], // Each object: { dataUrl, x, y, w, h, rot: 0 }
-        thumbUrl: null
-      };
-    }
-
-    function currentSlide() {
-      return state.slides[state.currentSlideIdx];
-    }
-
-    function getCleanExportFileName() {
-      const raw = (document.getElementById('inpLessonName').value || 'Physics_Lecture').trim();
-      return raw.replace(/[\\/:*?"<>|]+/g, '_');
-    }
-
-    // --- MULTI-DECK INDEXEDDB STORAGE ENGINE ---
-    const DB_NAME = 'PhysixSmartBoardDB_v2';
-    const STORE_NAME = 'library';
-    let dbInstance = null;
-
-    function initIndexedDB() {
-      return new Promise((resolve) => {
-        const req = indexedDB.open(DB_NAME, 1);
-        req.onupgradeneeded = (e) => {
-          const db = e.target.result;
-          if (!db.objectStoreNames.contains(STORE_NAME)) {
-            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
-          }
-        };
-        req.onsuccess = (e) => {
-          dbInstance = e.target.result;
-          resolve(dbInstance);
-        };
-        req.onerror = () => resolve(null);
-      });
-    }
-
-    function syncActiveDeckRecord() {
-      if (!state.activeDeckId) return;
-      const deck = state.decks.find(d => d.id === state.activeDeckId);
-      if (deck) {
-        const inpVal = document.getElementById('inpLessonName').value.trim();
-        if (inpVal) deck.name = inpVal;
-        deck.updatedAt = Date.now();
-        deck.currentSlideIdx = state.currentSlideIdx;
-        deck.slides = state.slides;
-      }
-      document.getElementById('lblDeckCount').textContent = state.decks.length;
-    }
-
-    function autoSaveSession() {
-      syncActiveDeckRecord();
-      if (!dbInstance) return;
-      try {
-        const tx = dbInstance.transaction(STORE_NAME, 'readwrite');
-        const store = tx.objectStore(STORE_NAME);
-        store.put({
-          id: 'master_library',
-          activeDeckId: state.activeDeckId,
-          decks: state.decks
-        });
-      } catch (err) {
-        console.warn('Autosave skipped:', err);
-      }
-    }
-
-    window.saveToIndexedDBManual = function() {
-      autoSaveSession();
-      document.getElementById('exportStatusMsg').textContent =
-        '✓ Saved "' + getCleanExportFileName() + '" to browser storage at ' + new Date().toLocaleTimeString();
-    };
-
-    async function loadLibraryOrInit() {
-      await initIndexedDB();
-      if (dbInstance) {
-        const tx = dbInstance.transaction(STORE_NAME, 'readonly');
-        const req = tx.objectStore(STORE_NAME).get('master_library');
-        req.onsuccess = () => {
-          if (req.result && Array.isArray(req.result.decks) && req.result.decks.length > 0) {
-            state.decks = req.result.decks;
-            const targetId = req.result.activeDeckId || state.decks[0].id;
-            switchToDeck(targetId);
-          } else {
-            initDefaultDeck();
-          }
-        };
-        req.onerror = () => initDefaultDeck();
-      } else {
-        initDefaultDeck();
-      }
-    }
-
-    function initDefaultDeck() {
-      const firstDeck = {
-        id: 'deck_' + Date.now(),
-        name: 'Physics_Lecture_1',
-        updatedAt: Date.now(),
-        currentSlideIdx: 0,
-        slides: [
-          createSlide({
-            type: 'blank',
-            title: 'Board 1'
-          })
-        ]
-      };
-      state.decks = [firstDeck];
-      switchToDeck(firstDeck.id);
-    }
-
-    window.switchToDeck = function(deckId) {
-      syncActiveDeckRecord();
-      const target = state.decks.find(d => d.id === deckId);
-      if (!target) return;
-      state.activeDeckId = target.id;
-      state.slides = target.slides;
-      state.currentSlideIdx = Math.min(target.currentSlideIdx || 0, Math.max(0, state.slides.length - 1));
-      state.selectedObjIdx = -1;
-      syncSelectedImageToolbar();
-      document.getElementById('inpLessonName').value = target.name;
-      document.getElementById('lblDeckCount').textContent = state.decks.length;
-      fitBoardToScreen();
-      renderCurrentSlideAll();
-      rebuildThumbnails();
-    };
-
-    window.createNewEmptyDeck = function(customName) {
-      syncActiveDeckRecord();
-      const defaultName = `Physics_Lecture_${state.decks.length + 1}`;
-      const name = customName || prompt('Enter name for the new Deck / Lecture:', defaultName);
-      if (!name) return;
-      const newDeck = {
-        id: 'deck_' + Date.now() + '_' + Math.random().toString(36).slice(2, 5),
-        name: name.trim(),
-        updatedAt: Date.now(),
-        currentSlideIdx: 0,
-        slides: [
-          createSlide({
-            type: 'blank',
-            title: 'Board 1'
-          })
-        ]
-      };
-      state.decks.push(newDeck);
-      switchToDeck(newDeck.id);
-      renderDecksModalList();
-      closeModal('decksModal');
-    };
-
-    window.resetCurrentDeckCompletely = function() {
-      if (!confirm('Clear all slides in this deck and start a fresh deck?')) return;
-      const freshName = `Physics_Lecture_${state.decks.length}`;
-      document.getElementById('inpLessonName').value = freshName;
-      state.slides = [createSlide({ type: 'blank', title: 'Board 1' })];
-      state.currentSlideIdx = 0;
-      state.selectedObjIdx = -1;
-      syncSelectedImageToolbar();
-      const deck = state.decks.find(d => d.id === state.activeDeckId);
-      if (deck) {
-        deck.name = freshName;
-        deck.slides = state.slides;
-        deck.currentSlideIdx = 0;
-      }
-      renderCurrentSlideAll();
-      rebuildThumbnails();
-      renderDecksModalList();
-      autoSaveSession();
-    };
-
-    window.deleteDeckById = function(deckId) {
-      if (state.decks.length <= 1) {
-        const freshName = 'Physics_Lecture_1';
-        document.getElementById('inpLessonName').value = freshName;
-        state.slides = [createSlide({ type: 'blank', title: 'Board 1' })];
-        state.currentSlideIdx = 0;
-        state.selectedObjIdx = -1;
-        syncSelectedImageToolbar();
-        state.decks[0].name = freshName;
-        state.decks[0].slides = state.slides;
-        state.decks[0].currentSlideIdx = 0;
-        renderCurrentSlideAll();
-        rebuildThumbnails();
-        renderDecksModalList();
-        autoSaveSession();
-        return;
-      }
-      if (!confirm('Delete this entire deck and its slides?')) return;
-      state.decks = state.decks.filter(d => d.id !== deckId);
-      if (state.activeDeckId === deckId) {
-        switchToDeck(state.decks[0].id);
-      }
-      autoSaveSession();
-      renderDecksModalList();
-    };
-
-    window.promptRenameDeck = function(deckId) {
-      const deck = state.decks.find(d => d.id === deckId);
-      if (!deck) return;
-      const nextName = prompt('Rename Deck:', deck.name);
-      if (nextName && nextName.trim()) {
-        deck.name = nextName.trim();
-        if (deck.id === state.activeDeckId) {
-          document.getElementById('inpLessonName').value = deck.name;
-        }
-        autoSaveSession();
-        renderDecksModalList();
-      }
-    };
-
-    window.renameCurrentDeck = function(newName) {
-      const clean = (newName || '').trim();
-      if (!clean) return;
-      const deck = state.decks.find(d => d.id === state.activeDeckId);
-      if (deck) deck.name = clean;
-      autoSaveSession();
-    };
-
-    window.openDecksModal = function() {
-      syncActiveDeckRecord();
-      renderDecksModalList();
-      openModal('decksModal');
-    };
-
-    // FIXED: The "Active" button is now a real clickable button that selects the deck and closes the modal!
-    function renderDecksModalList() {
-      const container = document.getElementById('decksListContainer');
-      container.innerHTML = '';
-      state.decks.forEach((d) => {
-        const isCurrent = d.id === state.activeDeckId;
-        const row = document.createElement('div');
-        row.className = `deck-item ${isCurrent ? 'active-deck' : ''}`;
-        row.innerHTML = `
-          <div style="cursor:pointer; flex:1;" onclick="switchToDeck('${d.id}'); closeModal('decksModal');" title="Click to open this deck on the board">
-            <div style="font-weight:700; font-size:0.88rem; color:#fff;">
-              ${isCurrent ? '🟢 ' : '📁 '}${d.name}
-            </div>
-            <div style="font-size:0.73rem; color:var(--ui-muted); margin-top:2px;">
-              ${d.slides.length} Slides &bull; Updated ${new Date(d.updatedAt).toLocaleTimeString()}
-            </div>
-          </div>
-          <div style="display:flex; gap:6px;">
-            <button class="t-btn" onclick="promptRenameDeck('${d.id}')" title="Rename this deck">✏️ Rename</button>
-            <button class="t-btn active" onclick="switchToDeck('${d.id}'); closeModal('decksModal');" title="Open this deck on the board">
-              ${isCurrent ? '✓ Active (Open)' : 'Open Deck'}
-            </button>
-            <button class="t-btn danger" onclick="deleteDeckById('${d.id}')" title="Delete this deck">🗑️ Delete</button>
-          </div>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    // --- HIGH-DEFINITION BACKGROUND & MOVABLE/ROTATABLE/DELETABLE IMAGE RENDERING ---
-    const imageCache = new Map();
-    function getCachedImage(dataUrl) {
-      if (!dataUrl) return Promise.resolve(null);
-      if (imageCache.has(dataUrl)) return Promise.resolve(imageCache.get(dataUrl));
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = () => {
-          imageCache.set(dataUrl, img);
-          resolve(img);
-        };
-        img.onerror = () => resolve(null);
-        img.src = dataUrl;
-      });
-    }
-
-    async function renderBackgroundLayer(slide, ctx = bgCtx) {
-      ctx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = 'high';
-
-      const useImportSource = (slide.type === 'pdf' || slide.type === 'image' || slide.type === 'pptx') && !slide.overrideBg;
-      ctx.fillStyle = useImportSource && slide.type !== 'blank' ? (slide.bgColor || '#ffffff') : slide.bgColor;
-      ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-
-      if (useImportSource && slide.sourceDataUrl) {
-        const img = await getCachedImage(slide.sourceDataUrl);
-        if (img) {
-          const scale = Math.min(LOGICAL_W / img.width, LOGICAL_H / img.height);
-          const dw = img.width * scale;
-          const dh = img.height * scale;
-          ctx.drawImage(img, (LOGICAL_W - dw) / 2, (LOGICAL_H - dh) / 2, dw, dh);
-        }
-      }
-
-      if (useImportSource && slide.type === 'pptx' && Array.isArray(slide.pptxElements)) {
-        for (const el of slide.pptxElements) {
-          if (el.kind === 'image' && el.dataUrl) {
-            const pImg = await getCachedImage(el.dataUrl);
-            if (pImg) ctx.drawImage(pImg, el.x, el.y, el.w, el.h);
-          } else if (el.kind === 'text') {
-            ctx.save();
-            ctx.fillStyle = el.color || '#0f172a';
-            ctx.font = `${el.bold ? '700' : '500'} ${el.fontSize || 32}px 'Inter', sans-serif`;
-            wrapCanvasText(ctx, el.text, el.x, el.y, el.w || 1600, (el.fontSize || 32) * 1.32);
-            ctx.restore();
-          }
-        }
-      }
-
-      drawGridPattern(ctx, slide.gridPattern, slide.bgColor);
-
-      // Render Movable, Rotatable, and Deletable Inserted Images
-      if (Array.isArray(slide.objects)) {
-        for (let i = 0; i < slide.objects.length; i++) {
-          const obj = slide.objects[i];
-          const oImg = await getCachedImage(obj.dataUrl);
-          if (!oImg) continue;
-
-          const cx = obj.x + obj.w / 2;
-          const cy = obj.y + obj.h / 2;
-          const rotRad = ((obj.rot || 0) * Math.PI) / 180;
-
-          ctx.save();
-          ctx.translate(cx, cy);
-          ctx.rotate(rotRad);
-          ctx.drawImage(oImg, -obj.w / 2, -obj.h / 2, obj.w, obj.h);
-
-          // Draw Rotate Handle (Top-Center), Delete Button (Top-Right), & Resize Handle (Bottom-Right) when selected!
-          if (ctx === bgCtx && state.tool === 'select' && state.selectedObjIdx === i) {
-            ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 3;
-            ctx.setLineDash([8, 6]);
-            ctx.strokeRect(-obj.w / 2, -obj.h / 2, obj.w, obj.h);
-            ctx.setLineDash([]);
-
-            // 1. Top-Center Rotation Stem & Green Handle (↻)
-            ctx.strokeStyle = '#22c55e';
-            ctx.lineWidth = 2.5;
-            ctx.beginPath();
-            ctx.moveTo(0, -obj.h / 2);
-            ctx.lineTo(0, -obj.h / 2 - 36);
-            ctx.stroke();
-
-            ctx.fillStyle = '#22c55e';
-            ctx.beginPath();
-            ctx.arc(0, -obj.h / 2 - 36, 15, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 17px sans-serif';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText('↻', 0, -obj.h / 2 - 36);
-
-            // 2. Top-Right Red Delete Button (✕)
-            ctx.fillStyle = '#ef4444';
-            ctx.beginPath();
-            ctx.arc(obj.w / 2, -obj.h / 2, 16, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 15px sans-serif';
-            ctx.fillText('✕', obj.w / 2, -obj.h / 2);
-
-            // 3. Bottom-Right Blue Resize Handle (↘)
-            ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(obj.w / 2 - 13, obj.h / 2 - 13, 26, 26);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 14px sans-serif';
-            ctx.fillText('↘', obj.w / 2, obj.h / 2);
-          }
-          ctx.restore();
-        }
-      }
-    }
-
-    // Transform stage coordinates into an inserted object's local unrotated frame around its center
-    function stageToObjectLocal(pt, obj) {
-      const cx = obj.x + obj.w / 2;
-      const cy = obj.y + obj.h / 2;
-      const dx = pt.x - cx;
-      const dy = pt.y - cy;
-      const rad = (-(obj.rot || 0) * Math.PI) / 180;
-      return {
-        lx: dx * Math.cos(rad) - dy * Math.sin(rad),
-        ly: dx * Math.sin(rad) + dy * Math.cos(rad)
-      };
-    }
-
-    function syncSelectedImageToolbar() {
-      const bar = document.getElementById('selectedImageBar');
-      if (!bar) return;
-      const sld = currentSlide();
-      const valid = state.tool === 'select' && sld && sld.objects && state.selectedObjIdx >= 0 && state.selectedObjIdx < sld.objects.length;
-      bar.style.display = valid ? 'flex' : 'none';
-    }
-
-    window.rotateSelectedImage = function(deltaDeg) {
-      const sld = currentSlide();
-      if (!sld || state.selectedObjIdx < 0 || !sld.objects[state.selectedObjIdx]) return;
-      const obj = sld.objects[state.selectedObjIdx];
-      obj.rot = ((obj.rot || 0) + deltaDeg) % 360;
-      renderCurrentSlideAll();
-    };
-
-    window.deleteSelectedImage = function() {
-      const sld = currentSlide();
-      if (!sld || state.selectedObjIdx < 0 || !sld.objects[state.selectedObjIdx]) return;
-      sld.objects.splice(state.selectedObjIdx, 1);
-      state.selectedObjIdx = -1;
-      syncSelectedImageToolbar();
-      renderCurrentSlideAll();
-    };
-
-    function wrapCanvasText(ctx, text, x, y, maxWidth, lineHeight) {
-      const lines = text.split('\n');
-      let curY = y;
-      for (const rawLine of lines) {
-        const words = rawLine.split(' ');
-        let line = '';
-        for (let n = 0; n < words.length; n++) {
-          const testLine = line + words[n] + ' ';
-          if (ctx.measureText(testLine).width > maxWidth && n > 0) {
-            ctx.fillText(line, x, curY);
-            line = words[n] + ' ';
-            curY += lineHeight;
-          } else {
-            line = testLine;
-          }
-        }
-        ctx.fillText(line, x, curY);
-        curY += lineHeight;
-      }
-    }
-
-    function drawGridPattern(ctx, pattern, bgHex) {
-      if (!pattern || pattern === 'none') return;
-      const isDark = isColorDark(bgHex || '#0f172a');
-      const lineCol = isDark ? 'rgba(255, 255, 255, 0.08)' : 'rgba(15, 23, 42, 0.09)';
-      const majorCol = isDark ? 'rgba(56, 189, 248, 0.18)' : 'rgba(37, 99, 235, 0.18)';
-
-      ctx.save();
-      if (pattern === 'fineGrid' || pattern === 'largeGrid') {
-        const step = pattern === 'fineGrid' ? 45 : 90;
-        ctx.strokeStyle = lineCol;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let x = 0; x <= LOGICAL_W; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
-        for (let y = 0; y <= LOGICAL_H; y += step) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
-        ctx.stroke();
-      } else if (pattern === 'graphPaper') {
-        ctx.strokeStyle = lineCol;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        for (let x = 0; x <= LOGICAL_W; x += 24) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
-        for (let y = 0; y <= LOGICAL_H; y += 24) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
-        ctx.stroke();
-
-        ctx.strokeStyle = majorCol;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        for (let x = 0; x <= LOGICAL_W; x += 120) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
-        for (let y = 0; y <= LOGICAL_H; y += 120) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
-        ctx.stroke();
-      } else if (pattern === 'ruled') {
-        ctx.strokeStyle = majorCol;
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        for (let y = 70; y <= LOGICAL_H; y += 54) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
-        ctx.stroke();
-      } else if (pattern === 'dotted') {
-        ctx.fillStyle = isDark ? 'rgba(255,255,255,0.22)' : 'rgba(15,23,42,0.25)';
-        for (let x = 45; x < LOGICAL_W; x += 45) {
-          for (let y = 45; y < LOGICAL_H; y += 45) {
-            ctx.beginPath();
-            ctx.arc(x, y, 1.8, 0, Math.PI * 2);
-            ctx.fill();
-          }
-        }
-      }
-      ctx.restore();
-    }
-
-    function isColorDark(hex) {
-      const c = hex.replace('#', '');
-      if (c.length !== 6) return true;
-      const r = parseInt(c.slice(0, 2), 16);
-      const g = parseInt(c.slice(2, 4), 16);
-      const b = parseInt(c.slice(4, 6), 16);
-      return (0.299 * r + 0.587 * g + 0.114 * b) < 128;
-    }
-
-    // --- ULTRA-SMOOTH VECTOR INK RENDERING ---
-    function renderInkLayer(slide, ctx = inkCtx) {
-      ctx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-      if (!slide || !Array.isArray(slide.strokes)) return;
-      for (const s of slide.strokes) {
-        drawSingleStroke(ctx, s);
-      }
-    }
-
-    function drawSingleStroke(ctx, s) {
-      ctx.save();
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-
-      if (s.tool === 'pixelEraser') {
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.lineWidth = s.width || 32;
-        drawContinuousSmoothCurve(ctx, s.points, s.width || 32);
-        ctx.restore();
-        return;
-      }
-
-      if (s.tool === 'highlighter') {
-        ctx.globalAlpha = 0.35;
-        ctx.lineWidth = Math.max(22, (s.width || 6) * 3.4);
-        ctx.strokeStyle = s.color;
-        drawContinuousSmoothCurve(ctx, s.points, ctx.lineWidth);
-        ctx.restore();
-        return;
-      }
-
-      ctx.strokeStyle = s.color || '#ffffff';
-      ctx.fillStyle = s.color || '#ffffff';
-      ctx.lineWidth = s.width || 4.5;
-
-      if (s.tool === 'pen') {
-        drawContinuousSmoothCurve(ctx, s.points, s.width || 4.5);
-      } else if (s.tool === 'line') {
-        drawLineOrArrow(ctx, s.p1, s.p2, s.subShape, s.width, s.color);
-      } else if (s.tool === 'shape') {
-        drawGeometricPhysicsShape(ctx, s.p1, s.p2, s.subGeo, s.width, s.color);
-      } else if (s.tool === 'text') {
-        ctx.font = `600 ${s.fontSize || 32}px 'Inter', sans-serif`;
-        const lines = (s.text || '').split('\n');
-        lines.forEach((ln, idx) => {
-          ctx.fillText(ln, s.x, s.y + idx * ((s.fontSize || 32) * 1.28));
-        });
-      }
-      ctx.restore();
-    }
-
-    function drawContinuousSmoothCurve(ctx, pts, width) {
-      if (!pts || pts.length === 0) return;
-      ctx.lineWidth = width;
-
-      if (pts.length === 1) {
-        ctx.beginPath();
-        ctx.arc(pts[0].x, pts[0].y, width / 2, 0, Math.PI * 2);
-        ctx.fill();
-        return;
-      }
-
-      if (pts.length === 2) {
-        ctx.beginPath();
-        ctx.moveTo(pts[0].x, pts[0].y);
-        ctx.lineTo(pts[1].x, pts[1].y);
-        ctx.stroke();
-        return;
-      }
-
-      ctx.beginPath();
-      ctx.moveTo(pts[0].x, pts[0].y);
-      for (let i = 1; i < pts.length - 1; i++) {
-        const midX = (pts[i].x + pts[i + 1].x) * 0.5;
-        const midY = (pts[i].y + pts[i + 1].y) * 0.5;
-        ctx.quadraticCurveTo(pts[i].x, pts[i].y, midX, midY);
-      }
-      const last = pts[pts.length - 1];
-      ctx.lineTo(last.x, last.y);
-      ctx.stroke();
-    }
-
-    function drawLineOrArrow(ctx, p1, p2, style, width, color) {
-      if (!p1 || !p2) return;
-      ctx.save();
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      ctx.lineWidth = width;
-      if (style === 'dashedLine' || style === 'dashedArrow') {
-        ctx.setLineDash([14, 10]);
-      }
-      ctx.beginPath();
-      ctx.moveTo(p1.x, p1.y);
-      ctx.lineTo(p2.x, p2.y);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      const headLen = Math.max(16, width * 3.5);
-      const ang = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-
-      if (style === 'arrow1' || style === 'arrow2' || style === 'dashedArrow') {
-        drawArrowHead(ctx, p2.x, p2.y, ang, headLen);
-      }
-      if (style === 'arrow2') {
-        drawArrowHead(ctx, p1.x, p1.y, ang + Math.PI, headLen);
-      }
-      ctx.restore();
-    }
-
-    function drawArrowHead(ctx, x, y, angle, headLen) {
-      ctx.beginPath();
-      ctx.moveTo(x, y);
-      ctx.lineTo(x - headLen * Math.cos(angle - Math.PI / 6), y - headLen * Math.sin(angle - Math.PI / 6));
-      ctx.lineTo(x - headLen * Math.cos(angle + Math.PI / 6), y - headLen * Math.sin(angle + Math.PI / 6));
-      ctx.closePath();
-      ctx.fill();
-    }
-
-    function drawGeometricPhysicsShape(ctx, p1, p2, kind, width, color) {
-      if (!p1 || !p2) return;
-      ctx.save();
-      ctx.strokeStyle = color;
-      ctx.fillStyle = color;
-      ctx.lineWidth = width;
-
-      const x = Math.min(p1.x, p2.x);
-      const y = Math.min(p1.y, p2.y);
-      const w = Math.abs(p2.x - p1.x);
-      const h = Math.abs(p2.y - p1.y);
-
-      if (kind === 'rect') {
-        ctx.strokeRect(x, y, w, h);
-      } else if (kind === 'ellipse') {
-        ctx.beginPath();
-        ctx.ellipse(x + w / 2, y + h / 2, w / 2, h / 2, 0, 0, Math.PI * 2);
-        ctx.stroke();
-      } else if (kind === 'triangle') {
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p2.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.lineTo(p1.x, p1.y);
-        ctx.closePath();
-        ctx.stroke();
-      } else if (kind === 'axes2d') {
-        drawLineOrArrow(ctx, { x: p1.x, y: p2.y }, { x: p2.x, y: p2.y }, 'arrow1', width, color);
-        drawLineOrArrow(ctx, { x: p1.x, y: p2.y }, { x: p1.x, y: p1.y }, 'arrow1', width, color);
-        ctx.font = 'bold 22px "JetBrains Mono", monospace';
-        ctx.fillText('+X', p2.x + 10, p2.y + 6);
-        ctx.fillText('+Y', p1.x - 14, p1.y - 12);
-      } else if (kind === 'angleArc') {
-        const r = Math.min(90, Math.hypot(p2.x - p1.x, p2.y - p1.y) * 0.45);
-        const ang = Math.atan2(p2.y - p1.y, p2.x - p1.x);
-        const deg = Math.round((-ang * 180) / Math.PI);
-
-        ctx.setLineDash([6, 6]);
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p1.x + Math.max(100, w), p1.y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.arc(p1.x, p1.y, r, 0, ang, ang < 0);
-        ctx.stroke();
-
-        ctx.font = 'bold 22px "JetBrains Mono", monospace';
-        ctx.fillText(`θ = ${Math.abs(deg)}°`, p1.x + r + 12, p1.y - 10);
-      }
-      ctx.restore();
-    }
-
-    async function renderCurrentSlideAll() {
-      const slide = currentSlide();
-      if (!slide) return;
-      await renderBackgroundLayer(slide, bgCtx);
-      renderInkLayer(slide, inkCtx);
-      updateBottomSlideReadout();
-      syncBgModalHighlights();
-      syncSelectedImageToolbar();
-      updateSlideThumbnail(state.currentSlideIdx);
-      autoSaveSession();
-    }
-
-    // --- POINTER EVENTS (WITH IMAGE MOVE, RESIZE, ROTATE & DELETE HANDLES) ---
-    let isDrawing = false;
-    let activeStroke = null;
-    let dragObjOffset = null;
-
-    function clientToStageCoords(clientX, clientY) {
-      const rect = tempCanvas.getBoundingClientRect();
-      return {
-        x: ((clientX - rect.left) / rect.width) * LOGICAL_W,
-        y: ((clientY - rect.top) / rect.height) * LOGICAL_H
-      };
-    }
-
-    tempCanvas.addEventListener('contextmenu', e => e.preventDefault());
-
-    tempCanvas.addEventListener('pointerleave', () => {
-      state.laserPoint = null;
-    });
-
-    tempCanvas.addEventListener('pointerdown', (e) => {
-      if (state.penOnly && e.pointerType === 'touch') return;
-      e.preventDefault();
-      tempCanvas.setPointerCapture(e.pointerId);
-
-      const pt = clientToStageCoords(e.clientX, e.clientY);
-      const effectiveTool = state.tool;
-
-      document.getElementById('stylusTelemetry').textContent =
-        `Tool: ${effectiveTool.toUpperCase()} | Input: ${e.pointerType.toUpperCase()}`;
-
-      if (effectiveTool === 'text') {
-        openTextOverlayAt(pt.x, pt.y);
-        return;
-      }
-
-      if (effectiveTool === 'select') {
-        const sld = currentSlide();
-        // 1. Check if clicking Rotate, Delete, or Resize handles of currently selected image first
-        if (sld && Array.isArray(sld.objects) && state.selectedObjIdx >= 0 && sld.objects[state.selectedObjIdx]) {
-          const selObj = sld.objects[state.selectedObjIdx];
-          const loc = stageToObjectLocal(pt, selObj);
-
-          // Top-Right Red Delete Handle (✕)
-          if (Math.hypot(loc.lx - selObj.w / 2, loc.ly - (-selObj.h / 2)) <= 24) {
-            deleteSelectedImage();
-            return;
-          }
-          // Top-Center Green Rotate Handle (↻)
-          if (Math.hypot(loc.lx - 0, loc.ly - (-selObj.h / 2 - 36)) <= 24) {
-            dragObjOffset = {
-              mode: 'rotate',
-              cx: selObj.x + selObj.w / 2,
-              cy: selObj.y + selObj.h / 2
-            };
-            return;
-          }
-          // Bottom-Right Blue Resize Handle (↘)
-          if (Math.abs(loc.lx - selObj.w / 2) <= 24 && Math.abs(loc.ly - selObj.h / 2) <= 24) {
-            dragObjOffset = { mode: 'resize', startW: selObj.w, startH: selObj.h, startX: pt.x, startY: pt.y };
-            return;
-          }
-        }
-
-        // 2. Otherwise check if clicking inside any image object body
-        state.selectedObjIdx = -1;
-        if (sld && Array.isArray(sld.objects)) {
-          for (let i = sld.objects.length - 1; i >= 0; i--) {
-            const o = sld.objects[i];
-            const loc = stageToObjectLocal(pt, o);
-            if (Math.abs(loc.lx) <= o.w / 2 && Math.abs(loc.ly) <= o.h / 2) {
-              state.selectedObjIdx = i;
-              dragObjOffset = { mode: 'move', dx: pt.x - o.x, dy: pt.y - o.y };
-              break;
-            }
-          }
-        }
-        syncSelectedImageToolbar();
-        renderCurrentSlideAll();
-        return;
-      }
-
-      isDrawing = true;
-
-      if (effectiveTool === 'laser') {
-        state.laserPoint = pt;
-        state.laserTrail.push({ x: pt.x, y: pt.y, t: performance.now() });
-        return;
-      }
-
-      if (effectiveTool === 'eraser') {
-        if (state.eraserType === 'stroke') {
-          eraseStrokeAtPoint(pt.x, pt.y);
-        } else {
-          activeStroke = {
-            tool: 'pixelEraser',
-            width: Math.max(28, state.penWidth * 5.0),
-            points: [{ x: pt.x, y: pt.y }]
-          };
-        }
-        return;
-      }
-
-      if (effectiveTool === 'pen' || effectiveTool === 'highlighter') {
-        activeStroke = {
-          tool: effectiveTool,
-          color: state.inkColor,
-          width: state.penWidth,
-          points: [{ x: pt.x, y: pt.y }]
-        };
-      } else if (effectiveTool === 'line') {
-        activeStroke = {
-          tool: 'line',
-          subShape: state.subShape,
-          color: state.inkColor,
-          width: state.penWidth,
-          p1: pt,
-          p2: pt
-        };
-      } else if (effectiveTool === 'shape') {
-        activeStroke = {
-          tool: 'shape',
-          subGeo: state.subGeo,
-          color: state.inkColor,
-          width: state.penWidth,
-          p1: pt,
-          p2: pt
-        };
-      }
-    });
-
-    tempCanvas.addEventListener('pointermove', (e) => {
-      if (state.penOnly && e.pointerType === 'touch') return;
-      const pt = clientToStageCoords(e.clientX, e.clientY);
-      const effectiveTool = state.tool;
-
-      if (effectiveTool === 'laser') {
-        state.laserPoint = pt;
-        state.laserTrail.push({ x: pt.x, y: pt.y, t: performance.now() });
-        return;
-      }
-
-      if (effectiveTool === 'select' && dragObjOffset && state.selectedObjIdx >= 0) {
-        const obj = currentSlide().objects[state.selectedObjIdx];
-        if (!obj) return;
-        if (dragObjOffset.mode === 'move') {
-          obj.x = pt.x - dragObjOffset.dx;
-          obj.y = pt.y - dragObjOffset.dy;
-        } else if (dragObjOffset.mode === 'resize') {
-          obj.w = Math.max(70, dragObjOffset.startW + (pt.x - dragObjOffset.startX));
-          obj.h = Math.max(70, dragObjOffset.startH + (pt.y - dragObjOffset.startY));
-        } else if (dragObjOffset.mode === 'rotate') {
-          const angleRad = Math.atan2(pt.y - dragObjOffset.cy, pt.x - dragObjOffset.cx);
-          obj.rot = Math.round(((angleRad * 180) / Math.PI + 90) % 360);
-        }
-        renderBackgroundLayer(currentSlide(), bgCtx);
-        return;
-      }
-
-      if (!isDrawing) return;
-
-      if (effectiveTool === 'eraser' && state.eraserType === 'stroke') {
-        eraseStrokeAtPoint(pt.x, pt.y);
-        return;
-      }
-
-      if (!activeStroke) return;
-
-      if (activeStroke.points) {
-        const lastPt = activeStroke.points[activeStroke.points.length - 1];
-        if (Math.hypot(pt.x - lastPt.x, pt.y - lastPt.y) >= 2.2) {
-          activeStroke.points.push({ x: pt.x, y: pt.y });
-        }
-        if (activeStroke.tool === 'pixelEraser') {
-          drawSingleStroke(inkCtx, activeStroke);
-        } else {
-          tempCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-          drawSingleStroke(tempCtx, activeStroke);
-        }
-      } else {
-        activeStroke.p2 = pt;
-        tempCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-        drawSingleStroke(tempCtx, activeStroke);
-      }
-    });
-
-    window.addEventListener('pointerup', () => {
-      if (dragObjOffset) {
-        dragObjOffset = null;
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
-      }
-      if (!isDrawing) return;
-      isDrawing = false;
-
-      if (activeStroke) {
-        const sld = currentSlide();
-        sld.strokes.push(activeStroke);
-        sld.redoStack = [];
-        activeStroke = null;
-        tempCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-        renderInkLayer(sld, inkCtx);
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
-      }
-    });
-
-    function eraseStrokeAtPoint(x, y) {
-      const sld = currentSlide();
-      if (!sld || !sld.strokes.length) return;
-      const threshold = 22;
-
-      for (let i = sld.strokes.length - 1; i >= 0; i--) {
-        const st = sld.strokes[i];
-        let hit = false;
-        if (st.points) {
-          hit = st.points.some(p => Math.hypot(p.x - x, p.y - y) < threshold);
-        } else if (st.p1 && st.p2) {
-          hit = distToSegment({ x, y }, st.p1, st.p2) < threshold;
-        } else if (st.tool === 'text') {
-          hit = (x >= st.x - 10 && x <= st.x + 280 && y >= st.y - 35 && y <= st.y + 35);
-        }
-        if (hit) {
-          const removed = sld.strokes.splice(i, 1)[0];
-          sld.redoStack.push(removed);
-          renderInkLayer(sld, inkCtx);
-          updateSlideThumbnail(state.currentSlideIdx);
-          autoSaveSession();
-          break;
-        }
-      }
-    }
-
-    function distToSegment(p, v, w) {
-      const l2 = Math.pow(v.x - w.x, 2) + Math.pow(v.y - w.y, 2);
-      if (l2 === 0) return Math.hypot(p.x - v.x, p.y - v.y);
-      let t = ((p.x - v.x) * (w.x - v.x) + (p.y - v.y) * (w.y - v.y)) / l2;
-      t = Math.max(0, Math.min(1, t));
-      return Math.hypot(p.x - (v.x + t * (w.x - v.x)), p.y - (v.y + t * (w.y - v.y)));
-    }
-
-    function animateLaserOverlay() {
-      requestAnimationFrame(animateLaserOverlay);
-      if (state.tool !== 'laser' && state.laserTrail.length === 0) return;
-
-      const now = performance.now();
-      state.laserTrail = state.laserTrail.filter(pt => now - pt.t < 650);
-
-      tempCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-
-      if (state.laserTrail.length > 1) {
-        for (let i = 1; i < state.laserTrail.length; i++) {
-          const p0 = state.laserTrail[i - 1];
-          const p1 = state.laserTrail[i];
-          if (Math.hypot(p1.x - p0.x, p1.y - p0.y) > 250) continue;
-          const alpha = Math.max(0, 1 - (now - p1.t) / 650);
-          tempCtx.save();
-          tempCtx.strokeStyle = `rgba(239, 68, 68, ${alpha})`;
-          tempCtx.shadowColor = '#ef4444';
-          tempCtx.shadowBlur = 12;
-          tempCtx.lineWidth = 8 * alpha + 2;
-          tempCtx.lineCap = 'round';
-          tempCtx.beginPath();
-          tempCtx.moveTo(p0.x, p0.y);
-          tempCtx.lineTo(p1.x, p1.y);
-          tempCtx.stroke();
-          tempCtx.restore();
-        }
-      }
-
-      if (state.tool === 'laser' && state.laserPoint) {
-        const lp = state.laserPoint;
-        tempCtx.save();
-        if (state.laserHalo) {
-          tempCtx.fillStyle = 'rgba(239, 68, 68, 0.28)';
-          tempCtx.beginPath();
-          tempCtx.arc(lp.x, lp.y, 28, 0, Math.PI * 2);
-          tempCtx.fill();
-        }
-        tempCtx.fillStyle = '#ef4444';
-        tempCtx.shadowColor = '#ef4444';
-        tempCtx.shadowBlur = 18;
-        tempCtx.beginPath();
-        tempCtx.arc(lp.x, lp.y, 9, 0, Math.PI * 2);
-        tempCtx.fill();
-
-        tempCtx.fillStyle = '#ffffff';
-        tempCtx.beginPath();
-        tempCtx.arc(lp.x, lp.y, 4, 0, Math.PI * 2);
-        tempCtx.fill();
-        tempCtx.restore();
-      }
-    }
-    requestAnimationFrame(animateLaserOverlay);
-
-    // --- TEXT & EQUATION TOOL OVERLAY ---
-    let pendingTextCoords = { x: 200, y: 200 };
-    function openTextOverlayAt(x, y) {
-      pendingTextCoords = { x, y };
-      const box = document.getElementById('textOverlayBox');
-      box.style.left = `${(x / LOGICAL_W) * 100}%`;
-      box.style.top = `${(y / LOGICAL_H) * 100}%`;
-      box.style.display = 'block';
-      document.getElementById('textOverlayInput').focus();
-    }
-
-    window.insertMathSym = function(sym) {
-      const inp = document.getElementById('textOverlayInput');
-      inp.focus();
-      document.execCommand('insertText', false, sym);
-    };
-
-    window.commitTextOverlay = function() {
-      const inp = document.getElementById('textOverlayInput');
-      const txt = inp.innerText.trim();
-      if (txt) {
-        const sld = currentSlide();
-        sld.strokes.push({
-          tool: 'text',
-          text: txt,
-          x: pendingTextCoords.x,
-          y: pendingTextCoords.y + 28,
-          color: state.inkColor,
-          fontSize: Math.max(26, state.penWidth * 6.0)
-        });
-        renderInkLayer(sld, inkCtx);
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
-      }
-      document.getElementById('textOverlayBox').style.display = 'none';
-    };
-
-    window.cancelTextOverlay = function() {
-      document.getElementById('textOverlayBox').style.display = 'none';
-    };
-
-    // --- OPTIMIZED HD FILE IMPORT ENGINE ---
-    const fileInput = document.getElementById('fileImportInput');
-    fileInput.addEventListener('change', async (e) => {
-      if (e.target.files && e.target.files.length) {
-        await handleImportedFiles(Array.from(e.target.files));
-        fileInput.value = '';
-      }
-    });
-
-    window.addEventListener('dragover', e => e.preventDefault());
-    window.addEventListener('drop', async (e) => {
-      e.preventDefault();
-      if (e.dataTransfer.files && e.dataTransfer.files.length) {
-        await handleImportedFiles(Array.from(e.dataTransfer.files));
-      }
-    });
-
-    async function handleImportedFiles(files) {
-      for (const file of files) {
-        const ext = file.name.split('.').pop().toLowerCase();
-        if (ext === 'pdf') {
-          await importPDFDocument(file);
-        } else if (ext === 'pptx') {
-          await importPPTXPresentation(file);
-        } else if (ext === 'ppt') {
-          alert('Legacy binary .PPT detected: Please save as .PPTX or .PDF in PowerPoint for HD rendering.');
-        } else if (['png', 'jpg', 'jpeg', 'webp'].includes(ext)) {
-          await importImageAsSlide(file);
-        } else if (ext === 'json' || ext === 'physboard') {
-          await importProjectJSON(file);
-        }
-      }
-      renderCurrentSlideAll();
-      rebuildThumbnails();
-    }
-
-    async function importPDFDocument(file) {
-      const arrayBuf = await file.arrayBuffer();
-      const pdf = await window.pdfjsLib.getDocument({ data: arrayBuf }).promise;
-      const newSlides = [];
-      const baseFileName = file.name.replace(/\.pdf$/i, '');
-
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const vp = page.getViewport({ scale: 2.2 });
-        const offCanvas = document.createElement('canvas');
-        offCanvas.width = vp.width;
-        offCanvas.height = vp.height;
-        const offCtx = offCanvas.getContext('2d');
-        offCtx.imageSmoothingEnabled = true;
-        offCtx.imageSmoothingQuality = 'high';
-        await page.render({ canvasContext: offCtx, viewport: vp }).promise;
-
-        newSlides.push(createSlide({
-          type: 'pdf',
-          title: `${baseFileName} - P${pageNum}`,
-          bgColor: '#ffffff',
-          gridPattern: 'none',
-          sourceDataUrl: offCanvas.toDataURL('image/jpeg', 0.92)
-        }));
-      }
-
-      if (newSlides.length > 0) {
-        document.getElementById('inpLessonName').value = baseFileName;
-        if (state.slides.length === 1 && state.slides[0].strokes.length === 0 && state.slides[0].type === 'blank') {
-          state.slides = newSlides;
-          state.currentSlideIdx = 0;
-        } else {
-          state.slides.push(...newSlides);
-          state.currentSlideIdx = state.slides.length - newSlides.length;
-        }
-        syncActiveDeckRecord();
-      }
-    }
-
-    async function importPPTXPresentation(file) {
-      try {
-        const baseFileName = file.name.replace(/\.pptx$/i, '');
-        const zip = await window.JSZip.loadAsync(file);
-        const slideFiles = Object.keys(zip.files)
-          .filter(k => /^ppt\/slides\/slide\d+\.xml$/.test(k))
-          .sort((a, b) => {
-            const na = parseInt(a.match(/slide(\d+)\.xml/)[1], 10);
-            const nb = parseInt(b.match(/slide(\d+)\.xml/)[1], 10);
-            return na - nb;
-          });
-
-        if (slideFiles.length === 0) {
-          alert('No slides found inside PPTX archive.');
-          return;
-        }
-
-        const newSlides = [];
-        for (let idx = 0; idx < slideFiles.length; idx++) {
-          const slidePath = slideFiles[idx];
-          const slideNum = idx + 1;
-          const xmlStr = await zip.file(slidePath).async('string');
-          const parser = new DOMParser();
-          const xmlDoc = parser.parseFromString(xmlStr, 'application/xml');
-
-          const relPath = `ppt/slides/_rels/slide${slideNum}.xml.rels`;
-          const relMap = {};
-          if (zip.file(relPath)) {
-            const relXml = await zip.file(relPath).async('string');
-            const relDoc = parser.parseFromString(relXml, 'application/xml');
-            const relNodes = relDoc.getElementsByTagName('Relationship');
-            for (const rNode of relNodes) {
-              const id = rNode.getAttribute('Id');
-              const target = rNode.getAttribute('Target');
-              if (id && target) relMap[id] = target.replace('../', 'ppt/');
-            }
-          }
-
-          const elements = [];
-          const blipNodes = xmlDoc.getElementsByTagName('a:blip');
-          for (const blip of blipNodes) {
-            const embedId = blip.getAttribute('r:embed');
-            const mediaPath = relMap[embedId];
-            if (mediaPath && zip.file(mediaPath)) {
-              const base64 = await zip.file(mediaPath).async('base64');
-              const ext = mediaPath.split('.').pop().toLowerCase();
-              const mime = ext === 'png' ? 'image/png' : 'image/jpeg';
-              elements.push({
-                kind: 'image',
-                dataUrl: `data:${mime};base64,${base64}`,
-                x: 1050,
-                y: 180,
-                w: 760,
-                h: 560
-              });
-            }
-          }
-
-          const pNodes = xmlDoc.getElementsByTagName('a:p');
-          let textY = 130;
-          let isTitle = true;
-          for (const pNode of pNodes) {
-            const tNodes = pNode.getElementsByTagName('a:t');
-            let paraText = '';
-            for (const tNode of tNodes) {
-              paraText += tNode.textContent;
-            }
-            paraText = paraText.trim();
-            if (paraText) {
-              elements.push({
-                kind: 'text',
-                text: isTitle ? paraText : '• ' + paraText,
-                x: 120,
-                y: textY,
-                w: elements.some(e => e.kind === 'image') ? 880 : 1680,
-                fontSize: isTitle ? 48 : 32,
-                bold: isTitle,
-                color: isTitle ? '#0f172a' : '#334155'
-              });
-              textY += isTitle ? 85 : 58;
-              isTitle = false;
-            }
-          }
-
-          newSlides.push(createSlide({
-            type: 'pptx',
-            title: `${baseFileName} - S${slideNum}`,
-            bgColor: '#ffffff',
-            gridPattern: 'none',
-            pptxElements: elements
-          }));
-        }
-
-        document.getElementById('inpLessonName').value = baseFileName;
-        state.slides.push(...newSlides);
-        state.currentSlideIdx = state.slides.length - newSlides.length;
-        syncActiveDeckRecord();
-      } catch (err) {
-        alert('Error reading PPTX file: ' + err.message);
-      }
-    }
-
-    async function importImageAsSlide(file) {
-      const dataUrl = await readFileAsDataURL(file);
-      const cleanName = file.name.replace(/\.[^/.]+$/, '');
-      document.getElementById('inpLessonName').value = cleanName;
-      state.slides.push(createSlide({
-        type: 'image',
-        title: cleanName,
-        bgColor: state.defaultBgColor,
-        gridPattern: 'none',
-        sourceDataUrl: dataUrl
-      }));
-      state.currentSlideIdx = state.slides.length - 1;
-      syncActiveDeckRecord();
-    }
-
-    document.getElementById('imgObjectInput').addEventListener('change', async (e) => {
-      if (e.target.files && e.target.files[0]) {
-        const dataUrl = await readFileAsDataURL(e.target.files[0]);
-        const sld = currentSlide();
-        sld.objects.push({
-          dataUrl,
-          x: 600,
-          y: 280,
-          w: 640,
-          h: 440,
-          rot: 0
-        });
-        selectTool('select');
-        state.selectedObjIdx = sld.objects.length - 1;
-        syncSelectedImageToolbar();
-        renderCurrentSlideAll();
-      }
-      e.target.value = '';
-    });
-
-    function readFileAsDataURL(file) {
-      return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
-        reader.readAsDataURL(file);
-      });
-    }
-
-    // --- SLIDE MANAGEMENT & THUMBNAILS ---
-    function updateSlideThumbnail(idx) {
-      const sld = state.slides[idx];
-      if (!sld) return;
-      const off = document.createElement('canvas');
-      off.width = 320;
-      off.height = 180;
-      const oCtx = off.getContext('2d');
-      oCtx.drawImage(bgCanvas, 0, 0, 320, 180);
-      oCtx.drawImage(inkCanvas, 0, 0, 320, 180);
-      sld.thumbUrl = off.toDataURL('image/jpeg', 0.78);
-
-      const imgEl = document.getElementById(`thumb-img-${idx}`);
-      if (imgEl) imgEl.src = sld.thumbUrl;
-    }
-
-    function rebuildThumbnails() {
-      const list = document.getElementById('thumbList');
-      list.innerHTML = '';
-      document.getElementById('lblTotalSlides').textContent = state.slides.length;
-
-      state.slides.forEach((sld, idx) => {
-        const card = document.createElement('div');
-        card.className = `thumb-card ${idx === state.currentSlideIdx ? 'active' : ''}`;
-        card.draggable = true;
-        card.onclick = () => goToSlide(idx);
-
-        card.ondragstart = (ev) => ev.dataTransfer.setData('text/plain', idx);
-        card.ondragover = (ev) => ev.preventDefault();
-        card.ondrop = (ev) => {
-          ev.preventDefault();
-          const fromIdx = parseInt(ev.dataTransfer.getData('text/plain'), 10);
-          if (!isNaN(fromIdx) && fromIdx !== idx) {
-            const moved = state.slides.splice(fromIdx, 1)[0];
-            state.slides.splice(idx, 0, moved);
-            state.currentSlideIdx = idx;
-            rebuildThumbnails();
-            renderCurrentSlideAll();
-          }
-        };
-
-        card.innerHTML = `
-          <button class="thumb-del-btn" title="Delete Slide #${idx + 1} (${sld.title})" onclick="event.stopPropagation(); deleteSlideByIndex(${idx});">✕</button>
-          <div class="thumb-preview">
-            ${sld.thumbUrl ? `<img id="thumb-img-${idx}" src="${sld.thumbUrl}" />` : `<span style="font-size:0.7rem; color:#94a3b8;">${sld.title}</span>`}
-          </div>
-          <div class="thumb-meta">
-            <span>#${idx + 1}</span>
-            <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:110px;">${sld.title}</span>
-          </div>
-        `;
-        list.appendChild(card);
-      });
-    }
-
-    window.deleteSlideByIndex = function(idx) {
-      if (idx < 0 || idx >= state.slides.length) return;
-      state.selectedObjIdx = -1;
-      syncSelectedImageToolbar();
-      if (state.slides.length === 1) {
-        const freshName = 'Physics_Lecture_1';
-        document.getElementById('inpLessonName').value = freshName;
-        state.slides[0] = createSlide({
-          type: 'blank',
-          title: 'Board 1'
-        });
-        state.currentSlideIdx = 0;
-        const deck = state.decks.find(d => d.id === state.activeDeckId);
-        if (deck) deck.name = freshName;
-      } else {
-        state.slides.splice(idx, 1);
-        if (state.currentSlideIdx >= state.slides.length) {
-          state.currentSlideIdx = state.slides.length - 1;
-        }
-      }
-      renderCurrentSlideAll();
-      rebuildThumbnails();
-      autoSaveSession();
-    };
-
-    window.goToSlide = function(idx) {
-      if (idx < 0 || idx >= state.slides.length) return;
-      state.currentSlideIdx = idx;
-      state.selectedObjIdx = -1;
-      syncSelectedImageToolbar();
-      renderCurrentSlideAll();
-      rebuildThumbnails();
-    };
-
-    window.addBlankSlideAt = function(targetIdx) {
-      const newSld = createSlide({
-        type: 'blank',
-        title: `Board ${state.slides.length + 1}`,
-        bgColor: state.defaultBgColor,
-        gridPattern: state.defaultGridPattern
-      });
-      state.slides.splice(targetIdx, 0, newSld);
-      goToSlide(targetIdx);
-    };
-
-    window.insertQuickBlankBoard = function() {
-      state.returnSlideIdx = state.currentSlideIdx;
-      document.getElementById('btnReturnSlide').style.display = 'inline-flex';
-      addBlankSlideAt(state.currentSlideIdx + 1);
-    };
-
-    window.returnFromBlankBoard = function() {
-      if (state.returnSlideIdx !== null && state.returnSlideIdx < state.slides.length) {
-        goToSlide(state.returnSlideIdx);
-      }
-      state.returnSlideIdx = null;
-      document.getElementById('btnReturnSlide').style.display = 'none';
-    };
-
-    window.duplicateCurrentSlide = function() {
-      const copy = JSON.parse(JSON.stringify(currentSlide()));
-      copy.id = 'sld_' + Date.now();
-      copy.title += ' (Copy)';
-      state.slides.splice(state.currentSlideIdx + 1, 0, copy);
-      goToSlide(state.currentSlideIdx + 1);
-    };
-
-    window.moveSlideOrder = function(dir) {
-      const from = state.currentSlideIdx;
-      const to = from + dir;
-      if (to < 0 || to >= state.slides.length) return;
-      const item = state.slides.splice(from, 1)[0];
-      state.slides.splice(to, 0, item);
-      goToSlide(to);
-    };
-
-    // --- TOOLBAR & PEN COLOR SYNC ---
-    window.selectTool = function(t) {
-      state.tool = t;
-      if (t !== 'select') {
-        state.selectedObjIdx = -1;
-      }
-      syncSelectedImageToolbar();
-      ['select', 'pen', 'highlighter', 'eraser', 'laser', 'line', 'shape', 'text'].forEach(id => {
-        const el = document.getElementById('tool-' + id);
-        if (el) el.classList.toggle('active', id === t);
-      });
-      const presPen = document.getElementById('pres-pen-btn');
-      const presEraser = document.getElementById('pres-eraser-btn');
-      if (presPen) presPen.classList.toggle('active', t === 'pen');
-      if (presEraser) presEraser.classList.toggle('active', t === 'eraser');
-
-      tempCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
-      renderBackgroundLayer(currentSlide(), bgCtx);
-      document.getElementById('stylusTelemetry').textContent = `Tool: ${t.toUpperCase()} | Ready`;
-    };
-
-    window.setInkColor = function(hex, swatchEl) {
-      state.inkColor = hex;
-      document.querySelectorAll('.swatch, .pres-swatch').forEach(s => {
-        const match = (s.dataset.col || '').toLowerCase() === hex.toLowerCase();
-        s.classList.toggle('active', match);
-      });
-      if (swatchEl) swatchEl.classList.add('active');
-      if (state.tool === 'eraser' || state.tool === 'select' || state.tool === 'laser') {
-        selectTool('pen');
-      }
-    };
-
-    window.setPenWidth = function(w, btnEl) {
-      state.penWidth = w;
-      document.getElementById('slPenWidth').value = w;
-      if (btnEl) {
-        document.querySelectorAll('.width-dot-btn').forEach(b => b.classList.remove('active'));
-        btnEl.classList.add('active');
-      }
-    };
-
-    window.undoStroke = function() {
-      const sld = currentSlide();
-      if (sld && sld.strokes.length > 0) {
-        sld.redoStack.push(sld.strokes.pop());
-        renderInkLayer(sld, inkCtx);
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
-      }
-    };
-
-    window.redoStroke = function() {
-      const sld = currentSlide();
-      if (sld && sld.redoStack.length > 0) {
-        sld.strokes.push(sld.redoStack.pop());
-        renderInkLayer(sld, inkCtx);
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
-      }
-    };
-
-    window.confirmClearSlide = function() {
-      const sld = currentSlide();
-      if (!sld || sld.strokes.length === 0) return;
-      if (confirm('Clear all handwritten annotations on this slide?')) {
-        sld.strokes = [];
-        sld.redoStack = [];
-        renderInkLayer(sld, inkCtx);
-        updateSlideThumbnail(state.currentSlideIdx);
-        autoSaveSession();
-      }
-    };
-
-    window.cycleSidebarMode = function() {
-      const sb = document.getElementById('slideSidebar');
-      if (state.sidebarMode === 'full') {
-        state.sidebarMode = 'strip';
-        sb.className = 'slide-sidebar strip-mode';
-      } else if (state.sidebarMode === 'strip') {
-        state.sidebarMode = 'hidden';
-        sb.className = 'slide-sidebar hidden-mode';
-      } else {
-        state.sidebarMode = 'full';
-        sb.className = 'slide-sidebar';
-      }
-      setTimeout(fitBoardToScreen, 200);
-    };
-
-    window.setBoardMode = function(mode) {
-      state.boardMode = mode;
-      document.body.className = `mode-${mode}`;
-      document.getElementById('mode-teaching').classList.toggle('active', mode === 'teaching');
-      document.getElementById('mode-pres').classList.toggle('active', mode === 'presentation');
-
-      if (mode === 'presentation' && document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else if (mode !== 'presentation' && document.fullscreenElement) {
-        document.exitFullscreen().catch(() => {});
-      }
-      setTimeout(fitBoardToScreen, 100);
-      setTimeout(fitBoardToScreen, 350);
-    };
-
-    window.togglePhysicsToolkit = function() {
-      const bar = document.getElementById('physicsKitCluster');
-      const visible = bar.style.display !== 'none';
-      bar.style.display = visible ? 'none' : 'flex';
-      document.getElementById('btnPhysBar').classList.toggle('active', !visible);
-    };
-
-    window.toggleUiTheme = function() {
-      const root = document.documentElement;
-      const cur = root.getAttribute('data-ui-theme');
-      root.setAttribute('data-ui-theme', cur === 'dark' ? 'light' : 'dark');
-    };
-
-    function syncBgModalHighlights() {
-      const sld = currentSlide();
-      if (!sld) return;
-
-      document.querySelectorAll('.bg-choice-btn').forEach(btn => {
-        const isMatch = (sld.bgColor || '').toLowerCase() === btn.dataset.bg.toLowerCase();
-        btn.classList.toggle('selected-choice', isMatch);
-        const baseLabel = btn.textContent.replace(/^✓\s*/, '');
-        btn.textContent = isMatch ? `✓ ${baseLabel}` : baseLabel;
-      });
-
-      document.querySelectorAll('.grid-choice-btn').forEach(btn => {
-        const isMatch = (sld.gridPattern || 'none') === btn.dataset.grid;
-        btn.classList.toggle('selected-choice', isMatch);
-        const baseLabel = btn.textContent.replace(/^✓\s*/, '');
-        btn.textContent = isMatch ? `✓ ${baseLabel}` : baseLabel;
-      });
-    }
-
-    window.setSlideBg = async function(color, pattern) {
-      const sld = currentSlide();
-      if (!sld) return;
-      const applyAllBlank = document.getElementById('chkApplyAllBlank')?.checked ?? true;
-
-      if (color) {
-        state.defaultBgColor = color;
-        localStorage.setItem('physix_default_bg', color);
-        sld.bgColor = color;
-        if (sld.type !== 'blank') sld.overrideBg = true;
-
-        if (applyAllBlank) {
-          state.slides.forEach(s => {
-            if (s.type === 'blank') s.bgColor = color;
-          });
-        }
-      }
-
-      if (pattern) {
-        state.defaultGridPattern = pattern;
-        localStorage.setItem('physix_default_grid', pattern);
-        sld.gridPattern = pattern;
-
-        if (applyAllBlank) {
-          state.slides.forEach(s => {
-            if (s.type === 'blank') s.gridPattern = pattern;
-          });
-        }
-      }
-
-      await renderCurrentSlideAll();
-
-      if (applyAllBlank) {
-        const off = document.createElement('canvas');
-        off.width = LOGICAL_W;
-        off.height = LOGICAL_H;
-        const offCtx = off.getContext('2d');
-        const thumbCanvas = document.createElement('canvas');
-        thumbCanvas.width = 320;
-        thumbCanvas.height = 180;
-        const tCtx = thumbCanvas.getContext('2d');
-
-        for (let i = 0; i < state.slides.length; i++) {
-          if (state.slides[i].type === 'blank') {
-            await renderBackgroundLayer(state.slides[i], offCtx);
-            for (const st of state.slides[i].strokes) drawSingleStroke(offCtx, st);
-            tCtx.clearRect(0, 0, 320, 180);
-            tCtx.drawImage(off, 0, 0, 320, 180);
-            state.slides[i].thumbUrl = thumbCanvas.toDataURL('image/jpeg', 0.78);
-          }
-        }
-        rebuildThumbnails();
-        autoSaveSession();
-      }
-    };
-
-    window.restoreOriginalSlideBg = function() {
-      const sld = currentSlide();
-      if (!sld) return;
-      sld.overrideBg = false;
-      sld.bgColor = sld.origBgColor;
-      sld.gridPattern = sld.origGridPattern;
-      renderCurrentSlideAll();
-      closeModal('bgModal');
-    };
-
-    // --- EDGE-TO-EDGE FULL SCREEN SCALING ---
-    function applyStageTransform() {
-      const vp = document.getElementById('boardViewport');
-      if (!vp) return;
-      const vw = vp.clientWidth;
-      const vh = vp.clientHeight;
-
-      if (state.boardMode === 'presentation' && state.zoom === 1.0) {
-        const sx = vw / LOGICAL_W;
-        const sy = vh / LOGICAL_H;
-        stageEl.style.transform = `translate(0px, 0px) scale(${sx}, ${sy})`;
-        document.getElementById('lblZoom').textContent = `100%`;
-        return;
-      }
-
-      const baseScale = Math.min((vw - 6) / LOGICAL_W, (vh - 6) / LOGICAL_H);
-      const totalScale = baseScale * state.zoom;
-      stageEl.style.transform = `translate(${state.panX}px, ${state.panY}px) scale(${totalScale})`;
-      document.getElementById('lblZoom').textContent = `${Math.round(state.zoom * 100)}%`;
-    }
-
-    window.adjustZoom = function(delta) {
-      state.zoom = Math.max(0.5, Math.min(3.0, state.zoom + delta));
-      applyStageTransform();
-    };
-
-    window.fitBoardToScreen = function() {
-      state.zoom = 1.0;
-      state.panX = 0;
-      state.panY = 0;
-      applyStageTransform();
-    };
-
-    window.addEventListener('resize', applyStageTransform);
-    document.addEventListener('fullscreenchange', () => setTimeout(applyStageTransform, 100));
-
-    function updateBottomSlideReadout() {
-      const cur = state.currentSlideIdx + 1;
-      const max = state.slides.length;
-      document.getElementById('lblCurSlide').textContent = cur;
-      document.getElementById('lblMaxSlide').textContent = max;
-      document.getElementById('lblPresSlide').textContent = `${cur}/${max}`;
-    }
-
-    // --- INTERACTIVE RULER / PROTRACTOR WIDGETS ---
-    window.toggleWidget = function(id, btn) {
-      const el = document.getElementById(id);
-      const show = el.style.display !== 'flex' && el.style.display !== 'block';
-      el.style.display = show ? (id === 'rulerWidget' ? 'flex' : 'block') : 'none';
-      if (btn) btn.classList.toggle('active', show);
-    };
-
-    let activeWidgetDrag = null;
-    document.querySelectorAll('.phys-widget').forEach(wEl => {
-      wEl.dataset.x = wEl.offsetLeft;
-      wEl.dataset.y = wEl.offsetTop;
-      wEl.dataset.rot = 0;
-
-      wEl.addEventListener('pointerdown', (e) => {
-        e.stopPropagation();
-        const isRotHandle = e.target.classList.contains('widget-handle');
-        activeWidgetDrag = {
-          el: wEl,
-          mode: isRotHandle ? 'rotate' : 'move',
-          startX: e.clientX,
-          startY: e.clientY,
-          origX: parseFloat(wEl.dataset.x) || 500,
-          origY: parseFloat(wEl.dataset.y) || 400,
-          origRot: parseFloat(wEl.dataset.rot) || 0
-        };
-      });
-    });
-
-    window.addEventListener('pointermove', (e) => {
-      if (!activeWidgetDrag) return;
-      const d = activeWidgetDrag;
-      if (d.mode === 'move') {
-        const nx = d.origX + (e.clientX - d.startX);
-        const ny = d.origY + (e.clientY - d.startY);
-        d.el.dataset.x = nx;
-        d.el.dataset.y = ny;
-        d.el.style.left = `${nx}px`;
-        d.el.style.top = `${ny}px`;
-      } else {
-        const nRot = (d.origRot + (e.clientY - d.startY) * 0.45) % 360;
-        d.el.dataset.rot = nRot;
-        d.el.style.transform = `rotate(${nRot}deg)`;
-        if (d.el.id === 'rulerWidget') {
-          document.getElementById('rulerAngleLbl').textContent = `${nRot.toFixed(1)}°`;
-        }
-      }
-    });
-    window.addEventListener('pointerup', () => { activeWidgetDrag = null; });
-
-    // --- PRESENTER TIMER ---
-    let timerInterval = null;
-    let timerSeconds = 0;
-    window.toggleTimer = function() {
-      const btn = document.getElementById('btnTimer');
-      if (timerInterval) {
-        clearInterval(timerInterval);
-        timerInterval = null;
-        btn.textContent = 'Resume Timer';
-      } else {
-        btn.textContent = 'Pause Timer';
-        timerInterval = setInterval(() => {
-          timerSeconds++;
-          const m = String(Math.floor(timerSeconds / 60)).padStart(2, '0');
-          const s = String(timerSeconds % 60).padStart(2, '0');
-          document.getElementById('lblTimer').textContent = `${m}:${s}`;
-        }, 1000);
-      }
-    };
-
-    // --- XP-PEN SHORTCUTS & KEYBOARD DELETE FOR SELECTED IMAGE ---
-    function renderShortcutSettings() {
-      const container = document.getElementById('shortcutGridContainer');
-      const labels = {
-        undo: 'Button 1: Undo Last Stroke',
-        eraser: 'Button 2: Eraser Tool (Toggle)',
-        laser: 'Button 3: Laser Pointer',
-        prevSlide: 'Button 4: Previous Slide',
-        nextSlide: 'Button 5: Next Slide',
-        pen: 'Switch to Pen Tool',
-        blankBoard: 'Insert Quick Blank Board'
-      };
-      container.innerHTML = '';
-      Object.keys(labels).forEach(k => {
-        const row = document.createElement('div');
-        row.className = 'sc-row';
-        row.innerHTML = `
-          <span>${labels[k]}</span>
-          <span class="sc-key" onclick="remapShortcut('${k}', this)">${state.shortcuts[k]}</span>
-        `;
-        container.appendChild(row);
-      });
-    }
-
-    window.remapShortcut = function(actionKey, badgeEl) {
-      badgeEl.textContent = 'Press key...';
-      const handler = (ev) => {
-        ev.preventDefault();
-        state.shortcuts[actionKey] = ev.key;
-        window.removeEventListener('keydown', handler);
-        renderShortcutSettings();
-      };
-      window.addEventListener('keydown', handler, { once: true });
-    };
-
-    window.addEventListener('keydown', (e) => {
-      if (e.target.isContentEditable || e.target.tagName === 'INPUT') return;
-
-      // Press Delete or Backspace to delete currently selected movable image!
-      if ((e.key === 'Delete' || e.key === 'Backspace') && state.tool === 'select' && state.selectedObjIdx >= 0) {
-        e.preventDefault();
-        deleteSelectedImage();
-        return;
-      }
-
-      const kLower = e.key.toLowerCase();
-
-      if (e.ctrlKey || e.metaKey) {
-        if (kLower === 'z') {
-          e.preventDefault();
-          undoStroke();
-          return;
-        }
-        if (kLower === 'y') {
-          e.preventDefault();
-          redoStroke();
-          return;
-        }
-        if (kLower === 'a') {
-          e.preventDefault();
-          state.subShape = 'arrow1';
-          document.getElementById('selLineStyle').value = 'arrow1';
-          selectTool('line');
-          return;
-        }
-        if (kLower === 'l') {
-          e.preventDefault();
-          state.subShape = 'solidLine';
-          document.getElementById('selLineStyle').value = 'solidLine';
-          selectTool('line');
-          return;
-        }
-        if (kLower === 'e') {
-          e.preventDefault();
-          selectTool('eraser');
-          return;
-        }
-        return;
-      }
-
-      const sc = state.shortcuts;
-      if (kLower === sc.eraser.toLowerCase()) selectTool('eraser');
-      else if (kLower === sc.undo.toLowerCase()) undoStroke();
-      else if (kLower === sc.laser.toLowerCase()) selectTool('laser');
-      else if (kLower === sc.pen.toLowerCase()) selectTool('pen');
-      else if (kLower === 'v') selectTool('select');
-      else if (e.key === sc.prevSlide || e.key === 'PageUp') goToSlide(state.currentSlideIdx - 1);
-      else if (e.key === sc.nextSlide || e.key === 'PageDown') goToSlide(state.currentSlideIdx + 1);
-      else if (kLower === sc.blankBoard.toLowerCase()) insertQuickBlankBoard();
-      else if (e.key === 'Tab') { e.preventDefault(); cycleSidebarMode(); }
-      else if (e.key === 'Escape' && state.boardMode === 'presentation') setBoardMode('teaching');
-    });
-
-    // --- MODALS & FAST, LOW-MB REPEATABLE EXPORT ENGINE ---
-    window.openModal = function(id) {
-      if (id === 'xpPenModal') renderShortcutSettings();
-      if (id === 'bgModal') syncBgModalHighlights();
-      document.getElementById(id).style.display = 'flex';
-    };
-    window.closeModal = function(id) {
-      document.getElementById(id).style.display = 'none';
-    };
-
-    window.openSlideOverviewModal = function() {
-      const grid = document.getElementById('overviewGridContainer');
-      grid.innerHTML = '';
-      state.slides.forEach((sld, idx) => {
-        const item = document.createElement('div');
-        item.className = `thumb-card ${idx === state.currentSlideIdx ? 'active' : ''}`;
-        item.onclick = () => { goToSlide(idx); closeModal('overviewModal'); };
-        item.innerHTML = `
-          <button class="thumb-del-btn" onclick="event.stopPropagation(); deleteSlideByIndex(${idx}); openSlideOverviewModal();">✕</button>
-          <div class="thumb-preview">
-            ${sld.thumbUrl ? `<img src="${sld.thumbUrl}" />` : `<span>Slide ${idx + 1}</span>`}
-          </div>
-          <div class="thumb-meta"><span>Slide ${idx + 1}</span><span>${sld.title}</span></div>
-        `;
-        grid.appendChild(item);
-      });
-      openModal('overviewModal');
-    };
-
-    function triggerBlobDownload(blob, filename) {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.style.display = 'none';
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(() => {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 1500);
-    }
-
-    window.exportCurrentSlidePNG = function() {
-      const out = document.createElement('canvas');
-      out.width = LOGICAL_W;
-      out.height = LOGICAL_H;
-      const ctx = out.getContext('2d');
-      ctx.drawImage(bgCanvas, 0, 0);
-      ctx.drawImage(inkCanvas, 0, 0);
-      out.toBlob((blob) => {
-        if (blob) {
-          triggerBlobDownload(blob, `${getCleanExportFileName()}_Slide_${state.currentSlideIdx + 1}.png`);
-          document.getElementById('exportStatusMsg').textContent = `✓ Downloaded Slide ${state.currentSlideIdx + 1} PNG!`;
-        }
-      }, 'image/png');
-    };
-
-    window.exportAllAnnotatedPDF = async function() {
-      await generateLessonPDF(true);
-    };
-
-    window.exportCleanPDF = async function() {
-      await generateLessonPDF(false);
-    };
-
-    async function generateLessonPDF(includeAnnotations) {
-      if (state.isExporting) return;
-      state.isExporting = true;
-
-      const statusEl = document.getElementById('exportStatusMsg');
-      const btnAnn = document.getElementById('btnExportAnnPDF');
-      const btnClean = document.getElementById('btnExportCleanPDF');
-      if (btnAnn) btnAnn.disabled = true;
-      if (btnClean) btnClean.disabled = true;
-
-      try {
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF({
-          orientation: 'landscape',
-          unit: 'px',
-          format: [LOGICAL_W, LOGICAL_H],
-          compress: true
-        });
-
-        const offBg = document.createElement('canvas');
-        offBg.width = LOGICAL_W;
-        offBg.height = LOGICAL_H;
-        const offBgCtx = offBg.getContext('2d');
-        offBgCtx.imageSmoothingEnabled = true;
-        offBgCtx.imageSmoothingQuality = 'high';
-
-        const total = state.slides.length;
-        for (let i = 0; i < total; i++) {
-          statusEl.textContent = `⏳ Rendering Slide ${i + 1} of ${total} (High-Speed HD Compression)...`;
-          await new Promise(r => setTimeout(r, 15));
-
-          if (i > 0) pdf.addPage([LOGICAL_W, LOGICAL_H], 'landscape');
-          const sld = state.slides[i];
-          await renderBackgroundLayer(sld, offBgCtx);
-          if (includeAnnotations) {
-            for (const st of sld.strokes) drawSingleStroke(offBgCtx, st);
-          }
-          const imgData = offBg.toDataURL('image/jpeg', 0.92);
-          pdf.addImage(imgData, 'JPEG', 0, 0, LOGICAL_W, LOGICAL_H, undefined, 'FAST');
-        }
-
-        const suffix = includeAnnotations ? '_Annotated.pdf' : '_Clean.pdf';
-        const finalFileName = getCleanExportFileName() + suffix;
-        const pdfBlob = pdf.output('blob');
-        const sizeMB = (pdfBlob.size / (1024 * 1024)).toFixed(2);
-        triggerBlobDownload(pdfBlob, finalFileName);
-
-        statusEl.textContent = `✅ Downloaded "${finalFileName}" (${sizeMB} MB) — Ready for next download!`;
-      } catch (err) {
-        statusEl.textContent = '❌ Export error: ' + err.message;
-      } finally {
-        state.isExporting = false;
-        if (btnAnn) btnAnn.disabled = false;
-        if (btnClean) btnClean.disabled = false;
-      }
-    }
-
-    window.downloadProjectJSON = function() {
-      syncActiveDeckRecord();
-      const cleanName = getCleanExportFileName();
-      const dataStr = JSON.stringify({
-        version: '2.2',
-        name: cleanName,
-        savedAt: new Date().toISOString(),
-        slides: state.slides
-      });
-      const blob = new Blob([dataStr], { type: 'application/json' });
-      triggerBlobDownload(blob, cleanName + '.physboard.json');
-      document.getElementById('exportStatusMsg').textContent = `✅ Downloaded "${cleanName}.physboard.json"!`;
-    };
-
-    async function importProjectJSON(file) {
-      try {
-        const text = await file.text();
-        const data = JSON.parse(text);
-        if (Array.isArray(data.slides) && data.slides.length > 0) {
-          const cleanName = data.name || file.name.replace(/(\.physboard)?\.json$/i, '');
-          const newDeck = {
-            id: 'deck_' + Date.now(),
-            name: cleanName,
-            updatedAt: Date.now(),
-            currentSlideIdx: 0,
-            slides: data.slides
-          };
-          state.decks.push(newDeck);
-          switchToDeck(newDeck.id);
-        }
-      } catch (e) {
-        alert('Invalid project file.');
-      }
-    }
-
-    // Boot Application
-    loadLibraryOrInit();
-  </script>
-</body>
-</html>
+        <input type="text" id="inpLessonName" value="Physics_Lecture_
