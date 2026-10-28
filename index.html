@@ -92,9 +92,9 @@
     }
     .t-btn:hover { border-color: var(--ui-accent); }
     .t-btn.active {
-      background: var(--ui-accent);
-      color: #ffffff;
-      border-color: #60a5fa;
+      background: var(--ui-accent) !important;
+      color: #ffffff !important;
+      border-color: #60a5fa !important;
       box-shadow: 0 0 0 2px var(--ui-accent-glow);
     }
     .t-btn:disabled {
@@ -115,13 +115,15 @@
       50% { box-shadow: 0 0 0 7px rgba(239, 68, 68, 0); }
     }
 
+    /* Persistent Blue Active Selection Highlight for All Option Buttons */
     .bg-choice-btn.selected-choice,
     .grid-choice-btn.selected-choice,
-    .cam-shape-btn.selected-choice {
-      background: rgba(59, 130, 246, 0.22) !important;
+    .cam-shape-btn.selected-choice,
+    .cam-border-btn.selected-choice {
+      background: rgba(59, 130, 246, 0.25) !important;
       border: 2px solid #38bdf8 !important;
       color: #ffffff !important;
-      box-shadow: 0 0 12px rgba(56, 189, 248, 0.35);
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
     }
 
     .mode-pills {
@@ -135,14 +137,21 @@
     .mode-pill {
       background: transparent;
       color: var(--ui-muted);
-      border: none;
+      border: 1px solid transparent;
       padding: 4px 10px;
       border-radius: 6px;
       font-size: 0.72rem;
       font-weight: 700;
       cursor: pointer;
+      transition: all 0.12s;
     }
-    .mode-pill.active { background: var(--ui-accent); color: #fff; }
+    .mode-pill:hover { color: var(--ui-text); }
+    .mode-pill.active {
+      background: var(--ui-accent) !important;
+      color: #ffffff !important;
+      border-color: #60a5fa !important;
+      box-shadow: 0 0 10px var(--ui-accent-glow);
+    }
 
     /* Compact Secondary Sub-Toolbar */
     .sub-toolbar {
@@ -315,7 +324,6 @@
       overflow: hidden;
       touch-action: none;
     }
-    /* Visual Recording Area Frame Indicator so Teacher Knows Exactly What is Recorded! */
     #board-stage.recording-frame-active {
       outline: 4px dashed #ef4444;
       outline-offset: -4px;
@@ -375,7 +383,6 @@
       pointer-events: none;
       display: block;
     }
-    /* Hover Mini Controls on Camera Bubble */
     .cam-hover-bar {
       position: absolute;
       bottom: 8px;
@@ -402,9 +409,9 @@
       padding: 2px 5px;
       border-radius: 4px;
     }
-    .cam-mini-btn:hover { background: var(--ui-accent); }
+    .cam-mini-btn:hover,
+    .cam-mini-btn.active { background: var(--ui-accent); }
 
-    /* Bottom-Right Resize Handle on Camera Widget */
     #camResizeHandle {
       position: absolute;
       right: 4px;
@@ -612,29 +619,30 @@
       position: fixed;
       bottom: 14px;
       right: 14px;
-      background: rgba(15, 23, 42, 0.92);
+      background: rgba(15, 23, 42, 0.94);
       backdrop-filter: blur(12px);
-      border: 1px solid var(--ui-border);
+      border: 1.5px solid #38bdf8;
       border-radius: 99px;
       padding: 6px 14px;
       display: none;
       align-items: center;
       gap: 7px;
       z-index: 90;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.55);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.65);
     }
     .pres-swatch {
-      width: 20px;
-      height: 20px;
+      width: 22px;
+      height: 22px;
       border-radius: 50%;
       border: 2px solid rgba(255,255,255,0.35);
       cursor: pointer;
-      transition: transform 0.12s;
+      transition: all 0.12s;
     }
-    .pres-swatch:hover,
+    .pres-swatch:hover { transform: scale(1.15); }
     .pres-swatch.active {
-      transform: scale(1.22);
-      border-color: #38bdf8;
+      transform: scale(1.25);
+      border: 2.5px solid #38bdf8 !important;
+      box-shadow: 0 0 10px rgba(56, 189, 248, 0.85);
     }
 
     body.mode-presentation .top-toolbar,
@@ -689,14 +697,14 @@
 
     <!-- Built-in Camera & Video Recording Controls + Modes -->
     <div class="tool-cluster">
-      <button class="t-btn" id="btnCamStudio" onclick="openCameraStudioModal()" title="Configure Camera (Camo Studio / Laptop Cam), Shape, Size & Recording">
+      <button class="t-btn" id="btnCamStudio" onclick="openCameraStudioModal()" title="Configure Camera, Microphone, Shape, Size & Recording">
         🎥 Studio / Cam
       </button>
-      <button class="t-btn" id="btnQuickRec" onclick="toggleBoardRecording()" title="Start / Stop Direct Board + Camera Video Recording (No OBS Needed!)">
+      <button class="t-btn" id="btnQuickRec" onclick="toggleBoardRecording()" title="Start / Stop Direct Board + Camera Video Recording">
         ⏺️ Rec Video
       </button>
       <div class="mode-pills">
-        <button class="mode-pill active" id="mode-teaching" onclick="setBoardMode('teaching')">Teach</button>
+        <button class="mode-pill active" id="mode-teaching" onclick="setBoardMode('teaching')">✓ Teach</button>
         <button class="mode-pill" id="mode-pres" onclick="setBoardMode('presentation')">Present</button>
       </div>
       <button class="t-btn" onclick="openModal('bgModal')" title="Board Background & Grid Settings">🎨 Board BG</button>
@@ -897,7 +905,7 @@
     <span class="mono-stat" id="lblPresSlide" style="color:#fff; min-width:38px; text-align:center;">1/1</span>
     <button class="t-btn" onclick="goToSlide(state.currentSlideIdx + 1)" title="Next Slide">▶</button>
     <div class="divider"></div>
-    <button class="t-btn active" id="pres-pen-btn" onclick="selectTool('pen')" title="Pen Tool">✒️</button>
+    <button class="t-btn active" id="pres-pen-btn" onclick="selectTool('pen')" title="Pen Tool">✒️ Pen</button>
     <div class="pres-swatch active" data-col="#ffffff" style="background:#ffffff" onclick="setInkColor('#ffffff', null)" title="White Pen"></div>
     <div class="pres-swatch" data-col="#facc15" style="background:#facc15" onclick="setInkColor('#facc15', null)" title="Yellow Pen"></div>
     <div class="pres-swatch" data-col="#ef4444" style="background:#ef4444" onclick="setInkColor('#ef4444', null)" title="Red Pen"></div>
@@ -905,13 +913,13 @@
     <div class="pres-swatch" data-col="#22c55e" style="background:#22c55e" onclick="setInkColor('#22c55e', null)" title="Green Pen"></div>
     <input type="color" value="#a855f7" oninput="setInkColor(this.value, null)" title="Custom Pen Color" style="width:20px; height:20px; border:none; background:transparent; cursor:pointer;" />
     <div class="divider"></div>
-    <button class="t-btn" id="pres-eraser-btn" onclick="selectTool('eraser')" title="Eraser Tool">🧹</button>
+    <button class="t-btn" id="pres-eraser-btn" onclick="selectTool('eraser')" title="Eraser Tool">🧹 Eraser</button>
     <button class="t-btn" id="pres-rec-btn" onclick="toggleBoardRecording()" title="Start/Stop Video Recording">⏺️</button>
     <button class="t-btn" onclick="insertQuickBlankBoard()" title="Add New Blank Slide">➕</button>
-    <button class="t-btn" onclick="setBoardMode('teaching')" title="Exit Presentation Mode (Esc)">✕ Exit</button>
+    <button class="t-btn active" onclick="setBoardMode('teaching')" title="Exit Presentation Mode (Esc)">✕ Exit Present</button>
   </div>
 
-  <!-- NEW MODAL: CAMERA & LECTURE RECORDING STUDIO (NO OBS NEEDED!) -->
+  <!-- MODAL: CAMERA & LECTURE RECORDING STUDIO (WITH CLEAR BLUE SELECTION STATES & DYNAMIC DEVICE NAMES) -->
   <div class="modal-backdrop" id="cameraStudioModal">
     <div class="modal-card">
       <div class="modal-header">
@@ -922,35 +930,35 @@
         Record your <b>1080p Smart Board + Camera Overlay + Microphone</b> directly into a video file without OBS Studio. Your top toolbars remain invisible in the recorded video, while the dashed frame shows the exact recorded board area.
       </p>
 
-      <!-- Device Selection (Camo Studio / DroidCam / Iriun / Laptop Cam & Boya Mic) -->
+      <!-- Dynamic Hardware Device Selection (Displays Exact Connected Device Names) -->
       <div class="shortcut-grid">
         <div style="display:flex; flex-direction:column; gap:5px;">
-          <label style="font-size:0.75rem; font-weight:700; color:var(--ui-muted);">CAMERA SOURCE (Camo / DroidCam / Webcam):</label>
+          <label style="font-size:0.75rem; font-weight:700; color:var(--ui-muted);">CAMERA INPUT DEVICE:</label>
           <select id="selVideoSource" class="t-btn" style="width:100%; padding:8px;" onchange="restartCameraStream()"></select>
         </div>
         <div style="display:flex; flex-direction:column; gap:5px;">
-          <label style="font-size:0.75rem; font-weight:700; color:var(--ui-muted);">MICROPHONE SOURCE (Boya BY-M1 / Default):</label>
+          <label style="font-size:0.75rem; font-weight:700; color:var(--ui-muted);">MICROPHONE INPUT DEVICE:</label>
           <select id="selAudioSource" class="t-btn" style="width:100%; padding:8px;" onchange="restartCameraStream()"></select>
         </div>
       </div>
 
-      <!-- Camera Power, Mirror & Recording Boundary Frame Toggle -->
+      <!-- Camera Power, Refresh & Mirror Flip (With Active Blue States!) -->
       <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
         <button class="t-btn active" id="btnToggleCamOverlay" onclick="toggleCameraOverlay()">📷 Turn Camera Overlay ON</button>
-        <button class="t-btn" onclick="refreshMediaDevices()">🔄 Refresh Camera/Mic List</button>
-        <button class="t-btn" onclick="toggleCameraMirror()">⇄ Mirror Flip Video</button>
+        <button class="t-btn" id="btnRefreshDevices" onclick="refreshMediaDevices(true)">🔄 Refresh Camera/Mic List</button>
+        <button class="t-btn selected-choice cam-shape-btn" id="btnMirrorFlip" onclick="toggleCameraMirror()">✓ ⇄ Mirror Flip: ON</button>
         <label style="display:flex; align-items:center; gap:6px; font-size:0.78rem; font-weight:600; cursor:pointer; margin-left:auto;">
           <input type="checkbox" id="chkShowRecFrame" checked onchange="syncRecBoundaryFrame()" style="width:16px; height:16px; accent-color:#ef4444;" />
           <span>Show Red Dashed Recording Area Boundary</span>
         </label>
       </div>
 
-      <!-- Shape & Size Customization -->
+      <!-- Shape, Size & Border Ring Customization (All with Active Blue Border & Checkmark!) -->
       <div style="background:var(--ui-card); border:1px solid var(--ui-border); border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:10px;">
         <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
           <span style="font-size:0.78rem; font-weight:700;">1. Camera Overlay Shape:</span>
           <div style="display:flex; gap:6px; flex-wrap:wrap;">
-            <button class="t-btn cam-shape-btn selected-choice" data-shape="circle" onclick="setCameraShape('circle')">⚪ Circle</button>
+            <button class="t-btn cam-shape-btn selected-choice" data-shape="circle" onclick="setCameraShape('circle')">✓ ⚪ Circle</button>
             <button class="t-btn cam-shape-btn" data-shape="square" onclick="setCameraShape('square')">⬜ Square</button>
             <button class="t-btn cam-shape-btn" data-shape="rect" onclick="setCameraShape('rect')">▭ Rectangle (16:9)</button>
             <button class="t-btn cam-shape-btn" data-shape="oval" onclick="setCameraShape('oval')">⬭ Vertical Oval</button>
@@ -964,12 +972,12 @@
 
         <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; flex-wrap:wrap;">
           <span style="font-size:0.78rem; font-weight:700;">3. Camera Border Ring:</span>
-          <div style="display:flex; gap:6px;">
-            <button class="t-btn" onclick="setCameraBorder('#38bdf8', 4)">Cyan Glow</button>
-            <button class="t-btn" onclick="setCameraBorder('#22c55e', 4)">Emerald</button>
-            <button class="t-btn" onclick="setCameraBorder('#facc15', 4)">Gold</button>
-            <button class="t-btn" onclick="setCameraBorder('#ffffff', 4)">White</button>
-            <button class="t-btn" onclick="setCameraBorder('transparent', 0)">No Border</button>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button class="t-btn cam-border-btn selected-choice" data-bcol="#38bdf8" onclick="setCameraBorder('#38bdf8', 4)">✓ Cyan Glow</button>
+            <button class="t-btn cam-border-btn" data-bcol="#22c55e" onclick="setCameraBorder('#22c55e', 4)">Emerald</button>
+            <button class="t-btn cam-border-btn" data-bcol="#facc15" onclick="setCameraBorder('#facc15', 4)">Gold</button>
+            <button class="t-btn cam-border-btn" data-bcol="#ffffff" onclick="setCameraBorder('#ffffff', 4)">White</button>
+            <button class="t-btn cam-border-btn" data-bcol="transparent" onclick="setCameraBorder('transparent', 0)">No Border</button>
           </div>
         </div>
       </div>
@@ -1143,7 +1151,7 @@
       camActive: false,
       camStream: null,
       camShape: 'circle',        // 'circle', 'square', 'rect', 'oval'
-      camSize: 320,              // base dimension in logical pixels
+      camSize: 320,
       camX: 1520,
       camY: 680,
       camMirror: true,
@@ -1181,17 +1189,33 @@
       c.imageSmoothingQuality = 'high';
     });
 
-    // --- BUILT-IN CAMERA OVERLAY & DIRECT BOARD VIDEO RECORDER (ZERO OBS NEEDED) ---
+    // --- BUILT-IN CAMERA OVERLAY & DIRECT BOARD VIDEO RECORDER ---
     window.openCameraStudioModal = async function() {
+      syncCameraModalSelections();
       openModal('cameraStudioModal');
-      await refreshMediaDevices();
+      await refreshMediaDevices(false);
     };
 
-    window.refreshMediaDevices = async function() {
+    // FIXED: Queries hardware permissions if needed so exact connected camera/mic names appear without hardcoded brands!
+    window.refreshMediaDevices = async function(fromButton = false) {
       if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+      const refBtn = document.getElementById('btnRefreshDevices');
+      if (fromButton && refBtn) {
+        refBtn.classList.add('active');
+        refBtn.textContent = '⏳ Scanning Devices...';
+      }
+
       try {
-        // Request brief permission if labels are empty
-        const devices = await navigator.mediaDevices.enumerateDevices();
+        let devices = await navigator.mediaDevices.enumerateDevices();
+        const hasLabels = devices.some(d => d.label && d.label.trim() !== '');
+        if (!hasLabels && !state.camStream) {
+          try {
+            const tempStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            devices = await navigator.mediaDevices.enumerateDevices();
+            tempStream.getTracks().forEach(t => t.stop());
+          } catch (_) {}
+        }
+
         const vSel = document.getElementById('selVideoSource');
         const aSel = document.getElementById('selAudioSource');
         const prevV = vSel.value;
@@ -1202,23 +1226,51 @@
         const vDevs = devices.filter(d => d.kind === 'videoinput');
         const aDevs = devices.filter(d => d.kind === 'audioinput');
 
-        vDevs.forEach((d, idx) => {
+        if (vDevs.length === 0) {
           const opt = document.createElement('option');
-          opt.value = d.deviceId;
-          opt.textContent = d.label || `Camera ${idx + 1} (Camo / Webcam)`;
+          opt.value = '';
+          opt.textContent = 'No Camera Detected';
           vSel.appendChild(opt);
-        });
-        aDevs.forEach((d, idx) => {
+        } else {
+          vDevs.forEach((d, idx) => {
+            const opt = document.createElement('option');
+            opt.value = d.deviceId;
+            opt.textContent = d.label || `Connected Camera ${idx + 1}`;
+            vSel.appendChild(opt);
+          });
+        }
+
+        if (aDevs.length === 0) {
           const opt = document.createElement('option');
-          opt.value = d.deviceId;
-          opt.textContent = d.label || `Microphone ${idx + 1} (Boya / Audio)`;
+          opt.value = '';
+          opt.textContent = 'No Microphone Detected';
           aSel.appendChild(opt);
-        });
+        } else {
+          aDevs.forEach((d, idx) => {
+            const opt = document.createElement('option');
+            opt.value = d.deviceId;
+            opt.textContent = d.label || `Connected Microphone ${idx + 1}`;
+            aSel.appendChild(opt);
+          });
+        }
 
         if (prevV && Array.from(vSel.options).some(o => o.value === prevV)) vSel.value = prevV;
         if (prevA && Array.from(aSel.options).some(o => o.value === prevA)) aSel.value = prevA;
+
+        if (fromButton && refBtn) {
+          refBtn.textContent = '✓ List Refreshed!';
+          document.getElementById('camStudioStatus').textContent =
+            `✓ Found ${vDevs.length} Camera(s) and ${aDevs.length} Microphone(s).`;
+          setTimeout(() => {
+            refBtn.classList.remove('active');
+            refBtn.textContent = '🔄 Refresh Camera/Mic List';
+          }, 1400);
+        }
       } catch (e) {
-        console.warn('Device enumeration notice:', e);
+        if (fromButton && refBtn) {
+          refBtn.classList.remove('active');
+          refBtn.textContent = '🔄 Refresh Camera/Mic List';
+        }
       }
     };
 
@@ -1248,22 +1300,20 @@
         await camVideoEl.play().catch(() => {});
         state.camActive = true;
 
-        // Refresh device names now that permission is granted so "Camo", "DroidCam", "Boya" appear clearly
-        await refreshMediaDevices();
+        await refreshMediaDevices(false);
         applyCameraWidgetStyles();
         syncCameraButtons();
         document.getElementById('camStudioStatus').textContent = '✓ Camera & Microphone Active! Drag the camera anywhere on the board.';
       } catch (err) {
-        // Fallback to video-only if mic is not plugged in
         try {
           state.camStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
           camVideoEl.srcObject = state.camStream;
           await camVideoEl.play().catch(() => {});
           state.camActive = true;
-          await refreshMediaDevices();
+          await refreshMediaDevices(false);
           applyCameraWidgetStyles();
           syncCameraButtons();
-          document.getElementById('camStudioStatus').textContent = '✓ Camera Active (No Microphone detected).';
+          document.getElementById('camStudioStatus').textContent = '✓ Camera Active (Video only).';
         } catch (err2) {
           alert('Could not access camera: ' + err2.message);
         }
@@ -1292,7 +1342,7 @@
       const topBtn = document.getElementById('btnCamStudio');
       if (btn) {
         btn.textContent = state.camActive ? '🔴 Turn Camera Overlay OFF' : '📷 Turn Camera Overlay ON';
-        btn.classList.toggle('active', !state.camActive);
+        btn.classList.toggle('active', state.camActive);
       }
       if (topBtn) {
         topBtn.classList.toggle('active', state.camActive);
@@ -1306,12 +1356,38 @@
       } else if (state.camShape === 'rect') {
         return { w: Math.round(s * 1.45), h: Math.round(s * 0.85) };
       } else {
-        // Vertical Oval
         return { w: Math.round(s * 0.85), h: Math.round(s * 1.2) };
       }
     }
 
+    // FIXED: Syncs persistent blue highlight & ✓ checkmark on Shape, Border Ring, and Mirror Flip buttons!
+    function syncCameraModalSelections() {
+      // 1. Shape buttons
+      document.querySelectorAll('.cam-shape-btn[data-shape]').forEach(b => {
+        const isMatch = b.dataset.shape === state.camShape;
+        b.classList.toggle('selected-choice', isMatch);
+        const cleanTxt = b.textContent.replace(/^✓\s*/, '');
+        b.textContent = isMatch ? `✓ ${cleanTxt}` : cleanTxt;
+      });
+
+      // 2. Border Ring buttons
+      document.querySelectorAll('.cam-border-btn').forEach(b => {
+        const isMatch = (b.dataset.bcol || '').toLowerCase() === (state.camBorderColor || '').toLowerCase();
+        b.classList.toggle('selected-choice', isMatch);
+        const cleanTxt = b.textContent.replace(/^✓\s*/, '');
+        b.textContent = isMatch ? `✓ ${cleanTxt}` : cleanTxt;
+      });
+
+      // 3. Mirror Flip toggle button
+      const mirBtn = document.getElementById('btnMirrorFlip');
+      if (mirBtn) {
+        mirBtn.classList.toggle('selected-choice', state.camMirror);
+        mirBtn.textContent = state.camMirror ? '✓ ⇄ Mirror Flip: ON' : '⇄ Mirror Flip: OFF';
+      }
+    }
+
     function applyCameraWidgetStyles() {
+      syncCameraModalSelections();
       if (!state.camActive) {
         camWidget.style.display = 'none';
         return;
@@ -1319,7 +1395,6 @@
       camWidget.style.display = 'block';
       const { w, h } = getCameraDimensions();
 
-      // Keep inside 1920x1080 logical board bounds
       state.camX = Math.max(10, Math.min(LOGICAL_W - w - 10, state.camX));
       state.camY = Math.max(10, Math.min(LOGICAL_H - h - 10, state.camY));
 
@@ -1336,10 +1411,6 @@
 
       camWidget.style.border = state.camBorderWidth > 0 ? `${state.camBorderWidth}px solid ${state.camBorderColor}` : 'none';
       camVideoEl.style.transform = state.camMirror ? 'scaleX(-1)' : 'none';
-
-      document.querySelectorAll('.cam-shape-btn').forEach(b => {
-        b.classList.toggle('selected-choice', b.dataset.shape === state.camShape);
-      });
     }
 
     window.setCameraShape = function(shape) {
@@ -1371,7 +1442,6 @@
       document.getElementById('recAreaBadge').style.display = state.isRecording ? 'inline-flex' : 'none';
     };
 
-    // Smooth Dragging & Corner Resizing of Camera Widget in 1920x1080 Stage Space
     let camDragState = null;
     camWidget.addEventListener('pointerdown', (e) => {
       if (e.target.closest('.cam-hover-bar')) return;
@@ -1421,15 +1491,11 @@
       if (!state.isRecording) return;
       requestAnimationFrame(renderCompositeRecordingFrame);
 
-      // 1. Draw Background + PDF/PPTX + Inserted Images
       recordCtx.clearRect(0, 0, LOGICAL_W, LOGICAL_H);
       recordCtx.drawImage(bgCanvas, 0, 0);
-      // 2. Draw Handwritten Ink Layer
       recordCtx.drawImage(inkCanvas, 0, 0);
-      // 3. Draw Active Stroke / Laser Pointer Layer
       recordCtx.drawImage(tempCanvas, 0, 0);
 
-      // 4. Draw Physics Ruler / Protractor if visible on board
       ['rulerWidget', 'protractorWidget'].forEach(wId => {
         const wEl = document.getElementById(wId);
         if (wEl && wEl.style.display !== 'none' && wEl.style.display !== '') {
@@ -1458,7 +1524,6 @@
         }
       });
 
-      // 5. Draw Camera Overlay in exact shape, size, and position!
       if (state.camActive && camVideoEl.readyState >= 2) {
         const { w, h } = getCameraDimensions();
         const cx = state.camX + w / 2;
@@ -1476,7 +1541,6 @@
         recordCtx.save();
         recordCtx.clip();
 
-        // Object-fit: cover crop calculation for video feed
         const vw = camVideoEl.videoWidth || 640;
         const vh = camVideoEl.videoHeight || 480;
         const scale = Math.max(w / vw, h / vh);
@@ -1488,7 +1552,6 @@
         recordCtx.drawImage(camVideoEl, -dw / 2, -dh / 2, dw, dh);
         recordCtx.restore();
 
-        // Draw border ring around camera overlay
         if (state.camBorderWidth > 0) {
           recordCtx.strokeStyle = state.camBorderColor;
           recordCtx.lineWidth = state.camBorderWidth;
@@ -1508,7 +1571,6 @@
 
     async function startBoardRecording() {
       try {
-        // Ensure we have microphone audio stream if not already running via camera
         if (!state.camStream) {
           try {
             const aId = document.getElementById('selAudioSource')?.value;
@@ -1516,12 +1578,10 @@
               video: false,
               audio: aId ? { deviceId: { exact: aId }, echoCancellation: true, noiseSuppression: true } : true
             });
-          } catch (_) {
-            // Proceed with silent board recording if no mic is connected
-          }
+          } catch (_) {}
         }
 
-        const canvasStream = recordCanvas.captureStream(30); // Smooth 30 FPS 1080p stream
+        const canvasStream = recordCanvas.captureStream(30);
         const combinedTracks = [...canvasStream.getVideoTracks()];
         if (state.camStream && state.camStream.getAudioTracks().length > 0) {
           combinedTracks.push(state.camStream.getAudioTracks()[0]);
@@ -1556,7 +1616,6 @@
         state.mediaRecorder.start(500);
         renderCompositeRecordingFrame();
 
-        // Update UI recording indicators
         syncRecBoundaryFrame();
         document.getElementById('btnQuickRec').classList.add('rec-live');
         document.getElementById('btnQuickRec').textContent = '⏹️ Stop Rec (00:00)';
@@ -1585,7 +1644,6 @@
       if (state.mediaRecorder && state.mediaRecorder.state !== 'inactive') {
         state.mediaRecorder.stop();
       }
-      // If camera overlay was off and we only opened mic for recording, release mic
       if (!state.camActive && state.camStream) {
         state.camStream.getTracks().forEach(t => t.stop());
         state.camStream = null;
@@ -1945,7 +2003,6 @@
             ctx.strokeRect(-obj.w / 2, -obj.h / 2, obj.w, obj.h);
             ctx.setLineDash([]);
 
-            // Top-Center Green Rotate Handle (↻)
             ctx.strokeStyle = '#22c55e';
             ctx.lineWidth = 2.5;
             ctx.beginPath();
@@ -1963,7 +2020,6 @@
             ctx.textBaseline = 'middle';
             ctx.fillText('↻', 0, -obj.h / 2 - 36);
 
-            // Top-Right Red Delete Button (✕)
             ctx.fillStyle = '#ef4444';
             ctx.beginPath();
             ctx.arc(obj.w / 2, -obj.h / 2, 16, 0, Math.PI * 2);
@@ -1975,7 +2031,6 @@
             ctx.font = 'bold 15px sans-serif';
             ctx.fillText('✕', obj.w / 2, -obj.h / 2);
 
-            // Bottom-Right Blue Resize Handle (↘)
             ctx.fillStyle = '#38bdf8';
             ctx.fillRect(obj.w / 2 - 13, obj.h / 2 - 13, 26, 26);
             ctx.fillStyle = '#ffffff';
@@ -3060,11 +3115,21 @@
       setTimeout(fitBoardToScreen, 200);
     };
 
+    // FIXED: Clearly updates Teach and Present mode buttons with ✓ and active blue state!
     window.setBoardMode = function(mode) {
       state.boardMode = mode;
       document.body.className = `mode-${mode}`;
-      document.getElementById('mode-teaching').classList.toggle('active', mode === 'teaching');
-      document.getElementById('mode-pres').classList.toggle('active', mode === 'presentation');
+      const btnTeach = document.getElementById('mode-teaching');
+      const btnPres = document.getElementById('mode-pres');
+
+      if (btnTeach) {
+        btnTeach.classList.toggle('active', mode === 'teaching');
+        btnTeach.textContent = mode === 'teaching' ? '✓ Teach' : 'Teach';
+      }
+      if (btnPres) {
+        btnPres.classList.toggle('active', mode === 'presentation');
+        btnPres.textContent = mode === 'presentation' ? '✓ Present' : 'Present';
+      }
 
       if (mode === 'presentation' && document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
@@ -3383,6 +3448,7 @@
     window.openModal = function(id) {
       if (id === 'xpPenModal') renderShortcutSettings();
       if (id === 'bgModal') syncBgModalHighlights();
+      if (id === 'cameraStudioModal') syncCameraModalSelections();
       document.getElementById(id).style.display = 'flex';
     };
     window.closeModal = function(id) {
@@ -3506,7 +3572,7 @@
       syncActiveDeckRecord();
       const cleanName = getCleanExportFileName();
       const dataStr = JSON.stringify({
-        version: '2.3',
+        version: '2.4',
         name: cleanName,
         savedAt: new Date().toISOString(),
         slides: state.slides
